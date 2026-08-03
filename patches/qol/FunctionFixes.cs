@@ -4,7 +4,6 @@ using RecompOne.Runtime.Memory;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RecompOne.Runtime.Hle;
 
 namespace Recompiled;

@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>26</SupportedOSPlatformVersion>
+    <OutputType>Exe</OutputType>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>$(DefineConstants);ANDROID;NO_MODS</DefineConstants>
+
+    <ApplicationId>com.blacklabelhq.symphonyrecomp</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>0.1</ApplicationDisplayVersion>
+
+    <!-- The Thor is arm64. Building a single ABI keeps the APK and the AOT step
+         to a fraction of what a fat build costs. -->
+    <RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <!-- No mod system means no Roslyn and no MonoMod, so nothing needs a JIT and
+       the recompiled MIPS can go through AOT. This is the main perf lever. -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <RunAOTCompilation>true</RunAOTCompilation>
+    <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
+    <EnableLLVM>false</EnableLLVM>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../RecompOne/RecompOne.Runtime/RecompOne.Runtime.csproj" />
+  </ItemGroup>
+
+  <!-- Game glue from the SymphonyRecomp tree. Paths are relative to this project.
+       The recompiler writes generated/ from the disc; see android/README.md. -->
+  <ItemGroup>
+    <Compile Include="../../generated/**/*.cs" />
+    <Compile Include="../../wrapers/**/*.cs" />
+    <Compile Include="../../events/**/*.cs" />
+    <!-- All patches, not just widescreen: the recompiler bakes calls to
+         Recompiled.RandoPatch, QualityOfLife, MovementCheat and FunctionFixes
+         straight into the generated code, so the patch logic is not optional. -->
+    <Compile Include="../../patches/**/*.cs" />
+  </ItemGroup>
+
+  <!-- The ImGui menus and panels are, though. Every file here is UI; the patch
+       logic beside them has no ImGui dependency and stays in. -->
+  <ItemGroup>
+    <Compile Remove="../../patches/cheats/CheatMenu.cs" />
+    <Compile Remove="../../patches/cheats/InventoryCheatPanel.cs" />
+    <Compile Remove="../../patches/cheats/MovementCheatPanel.cs" />
+    <Compile Remove="../../patches/cheats/StatsCheatPanel.cs" />
+    <Compile Remove="../../patches/qol/QualityOfLifeMenu.cs" />
+    <Compile Remove="../../patches/qol/QualityOfLifePanel.cs" />
+    <Compile Remove="../../patches/rando/RandoMenu.cs" />
+    <Compile Remove="../../patches/rando/RandoPanel.cs" />
+    <Compile Remove="../../patches/tracker/TrackerMenu.cs" />
+    <Compile Remove="../../patches/tracker/TrackerIcons.cs" />
+    <Compile Remove="../../patches/tracker/TrackerOverlayPanel.cs" />
+    <Compile Remove="../../patches/tracker/MapOverlayPanel.cs" />
+    <Compile Remove="../../patches/widescreen/WidescreenSettingsSection.cs" />
+  </ItemGroup>
+
+</Project>

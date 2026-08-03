@@ -7,7 +7,10 @@
     <AssemblyName>sotn</AssemblyName>
     <ApplicationIcon>assets/icon/SymphonyRecomp.ico</ApplicationIcon>
     <NoWarn>0162</NoWarn>
-    <DefaultItemExcludes>$(DefaultItemExcludes);RecompOne/**</DefaultItemExcludes>
+    <!-- android/ is its own head project and must not be globbed into the desktop
+         build; its sources reference Mono.Android and the ANDROID-only Platform
+         namespace, neither of which exists here. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);RecompOne/**;android/**</DefaultItemExcludes>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">

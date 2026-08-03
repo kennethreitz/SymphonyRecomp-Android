@@ -2,6 +2,7 @@ using RecompOne.Runtime.Context;
 using RecompOne.Runtime.Events;
 using RecompOne.Runtime.Memory;
 using RecompOne.Runtime.Hle;
+using Sotn;
 
 namespace Recompiled;
 
@@ -68,9 +69,25 @@ public static partial class WidescreenPatch
         OriginalAspect = RecompOne.Runtime.Runtime.View.GetBool("WidescreenOriginalAspect", true);
     }
 
+    // Some stages' art simply does not extend past 4:3, so a wider viewport shows
+    // past the edge of the set rather than more of it. The prologue is the clear
+    // case. These stay pillarboxed no matter what the widescreen setting says.
+    static readonly Stage[] NarrowStages = [Stage.Prologue];
+
+    static bool StageSupportsWide()
+    {
+        foreach (var s in NarrowStages)
+            if (Stages.Current == s) return false;
+        return true;
+    }
+
     public static void Register()
     {
         Event.AddListener<DisplayModeEvent>(OnDisplayMode);
+        // The display mode does not change when moving between rooms of the same
+        // kind, so re-evaluate on room load too or the stage gate above would only
+        // take effect on the next menu round-trip.
+        Event.AddListener<RoomLayerLoadEvent>(_ => Refresh());
         RegisterEffectPrims();
     }
 
@@ -85,7 +102,7 @@ public static partial class WidescreenPatch
         bool stage = mode == DisplayMode.Stage;
         Display.SourceAspect = stage ? SourceAspect : 4f / 3f;
         Display.OutputAspect = 4f / 3f;
-        Display.WideAspect = stage && !OriginalAspect ? StageAspect : 0f;
+        Display.WideAspect = stage && !OriginalAspect && StageSupportsWide() ? StageAspect : 0f;
     }
 
     public static void ConfigStageClip(CpuContext c, IMemory m)

@@ -5,14 +5,10 @@
 //
 // Currently we are just doing the basics for simple presets as well as for the built-in randomizer feature.
 
-using System.Data.SqlTypes;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RecompOne.Runtime.Context;
 using RecompOne.Runtime.Dispatch;
 using RecompOne.Runtime.Hle;
 using RecompOne.Runtime.Memory;
-using Silk.NET.Vulkan;
-using SixLabors.ImageSharp;
 using Sotn;
 
 namespace Recompiled;

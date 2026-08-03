@@ -5,12 +5,10 @@
 // Perhaps some other options and features.
 
 using System.Security.Cryptography;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using RecompOne.Runtime.Context;
 using RecompOne.Runtime.Dispatch;
 using RecompOne.Runtime.Hle;
 using RecompOne.Runtime.Memory;
-using Silk.NET.Vulkan;
 
 namespace Recompiled;
 
