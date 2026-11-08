@@ -1,161 +1,292 @@
-using System.Reflection;
+using System.Diagnostics;
 using Android.Content;
 using Android.Graphics;
 using Android.Views;
-using RecompOne.Runtime.Memory;
-using Sotn;
+using RecompOne.Runtime.Events;
+using GameRuntime = RecompOne.Runtime.Runtime;
 
 namespace SymphonyRecomp.Android.SecondScreen;
 
-// Draws the castle map for the Thor's lower screen.
-//
-// Canvas rather than GL on purpose: the game owns an EGL context on its own
-// thread, and a second GL surface would mean either sharing that context across
-// threads or building a second one. Neither is worth it to draw a few hundred
-// rectangles at 10Hz.
+// Nearest-neighbor blit of the game's own 256x256, 4bpp map. The UI never reads
+// game memory: a VSync listener publishes immutable snapshots from the game thread.
 public sealed class CastleMapView : View
 {
-    // Map geometry, matching the desktop tracker's overlay: the castle art is
-    // 320x255 in map units and each room cell is 5 units square. Row 0 of the
-    // map RAM sits 15 units above the top of the art, so early rows clip out.
-    const int MapArtW = 320;
-    const int MapArtH = 255;
-    const int Cell = 5;
-    const int RowOffset = 15;
-    const int GridWidth = 64;
+    readonly Paint _bitmapPaint = new() { FilterBitmap = false, AntiAlias = false };
+    readonly Paint _markerPaint = new() { Color = Color.Yellow, AntiAlias = false };
+    readonly Paint _textPaint = new() { Color = Color.LightGray, TextSize = 24, AntiAlias = true };
+    readonly byte[] _blueprint = new byte[32768], _flags = new byte[0x800];
+    readonly ushort[] _map = new ushort[16384], _palette = new ushort[16];
+    Bitmap? _bitmap;
+    GearFrame? _frame;
+    CastleMapFrame? _drawn;
+    int _page, _touchTab = -1;
+    float _uiScale = 1, _uiLeft, _uiTop;
+    readonly Paint _chrome = new() { AntiAlias = true };
+    readonly Typeface _titleFont = Typeface.Create("serif", TypefaceStyle.Bold)!;
+    readonly Typeface _bodyFont = Typeface.Create("sans-serif", TypefaceStyle.Normal)!;
+    static readonly Color Gold = new(178, 143, 84), Ink = new(13, 12, 20), Muted = new(139, 133, 143);
+    static readonly string[] Tabs = ["MAP", "STATUS", "JOURNAL"];
+    long _lastCapture;
+    bool _subscribed, _reportedError;
+    bool? _reportedCastle;
 
-    // Player position. CastleX/Y are the room's origin; RoomX/Y are the offset
-    // within it, in 256ths.
-    const uint ZoneAddr = 0x800974A0;
-    const uint CastleXAddr = 0x800730B0;
-    const uint CastleYAddr = 0x800730B4;
-    const uint RoomXAddr = 0x800973F0;
-    const uint RoomYAddr = 0x800973F4;
-    const uint PlayStateAddr = 0x80073060;
+    public CastleMapView(Context context) : base(context) => SetBackgroundColor(Color.Black);
 
-    readonly Paint _visited = new() { Color = new Color(0x3A, 0x6E, 0xA5), AntiAlias = false };
-    readonly Paint _player = new() { Color = new Color(0xFF, 0xE0, 0x50), AntiAlias = false };
-    readonly Paint _bitmap = new() { FilterBitmap = false, AntiAlias = false };
-    readonly Paint _text = new() { Color = Color.DarkGray, TextSize = 28f, AntiAlias = true };
-
-    Bitmap? _castle1, _castle2;
-    bool _assetsTried;
-
-    public CastleMapView(Context context) : base(context)
+    protected override void OnAttachedToWindow()
     {
-        SetBackgroundColor(Color.Black);
+        base.OnAttachedToWindow();
+        if (!_subscribed)
+        {
+            Event.AddListener<VSyncEvent>(Capture);
+            _subscribed = true;
+        }
     }
 
-    // Blocky pixel art scaled up; nearest-neighbour keeps it crisp.
-    void EnsureAssets()
+    protected override void OnDetachedFromWindow()
     {
-        if (_assetsTried) return;
-        _assetsTried = true;
-        _castle1 = LoadBitmap("map.Castle1.png");
-        _castle2 = LoadBitmap("map.Castle2.png");
+        if (_subscribed) Event.RemoveListener<VSyncEvent>(Capture);
+        _subscribed = false;
+        base.OnDetachedFromWindow();
     }
 
-    static Bitmap? LoadBitmap(string logicalName)
+    void Capture(VSyncEvent _)
     {
+        long now = Stopwatch.GetTimestamp();
+        if (now - _lastCapture < Stopwatch.Frequency / 10) return;
+        _lastCapture = now;
         try
         {
-            var asm = Assembly.GetExecutingAssembly();
-            using var stream = asm.GetManifestResourceStream(logicalName);
-            if (stream == null)
+            var mem = GameRuntime.Mem;
+            var vram = GameRuntime.Gpu?.Vram;
+            // The blueprint address is reused outside stages. Never interpret a
+            // title/menu/movie buffer or an incomplete stage load as a castle map.
+            if (mem == null || vram == null || mem.ReadU32(0x8003C734) != 2 ||
+                mem.ReadU32(0x80073060) != 3 || mem.ReadU32(0x800974A0) == 0x1f)
             {
-                Console.Error.WriteLine($"[Map] embedded resource missing: {logicalName}");
-                return null;
+                Volatile.Write(ref _frame, null);
+                return;
             }
-            return BitmapFactory.DecodeStream(stream);
+            bool inverted = (mem.ReadU32(0x800974A0) & 0x20) != 0;
+            for (int i = 0; i < _blueprint.Length; i++)
+                _blueprint[i] = mem.ReadU8(CastleMapFrame.BlueprintAddress + (uint)i);
+            for (int i = 0; i < _flags.Length; i++)
+                _flags[i] = mem.ReadU8(CastleMapFrame.FlagsAddress + (uint)i);
+            for (int y = 0; y < CastleMapFrame.Size; y++)
+                Array.Copy(vram, (CastleMapFrame.VramY + y) * 1024 + CastleMapFrame.VramX,
+                    _map, y * CastleMapFrame.VramRowWords, CastleMapFrame.VramRowWords);
+            Array.Copy(vram, CastleMapFrame.PaletteY * 1024 + CastleMapFrame.PaletteX,
+                _palette, 0, _palette.Length);
+            int playerX = (int)mem.ReadU32(0x800730B0) + ((int)mem.ReadU32(0x800973F0) >> 8);
+            int playerY = (int)mem.ReadU32(0x800730B4) + ((int)mem.ReadU32(0x800973F4) >> 8);
+            var frame = CastleMapFrame.Decode(_blueprint, _flags, _map, _palette,
+                inverted, playerX, playerY);
+            var status = GearStatus.Read(mem.ReadU32, mem.ReadU8);
+            Volatile.Write(ref _frame, new GearFrame(frame, status));
+            if (_reportedCastle != inverted)
+            {
+                Console.WriteLine($"[MapV2] LIVE_BITMAP RAM=801e0000 VRAM=832,256 CLUT=0,7 " +
+                    $"inverted={inverted} explored={frame.Explored} known={frame.Known} " +
+                    $"playerCell={playerX},{playerY} marker={frame.PlayerPixelX},{frame.PlayerPixelY}");
+                _reportedCastle = inverted;
+            }
         }
         catch (Exception e)
         {
-            Console.Error.WriteLine($"[Map] failed to decode {logicalName}: {e.Message}");
-            return null;
+            Volatile.Write(ref _frame, null);
+            if (!_reportedError) Console.Error.WriteLine($"[MapV2] snapshot unavailable: {e}");
+            _reportedError = true;
         }
     }
+
+    void Text(Canvas c, string text, float x, float y, float size, Color color, bool title = false)
+    {
+        _chrome.SetStyle(Paint.Style.Fill);
+        _chrome.Color = color;
+        _chrome.TextSize = size;
+        _chrome.SetTypeface(title ? _titleFont : _bodyFont);
+        c.DrawText(text, x, y, _chrome);
+    }
+
+    void Panel(Canvas c, float l, float t, float r, float b, Color fill, Color stroke)
+    {
+        _chrome.SetStyle(Paint.Style.Fill); _chrome.Color = fill;
+        c.DrawRoundRect(l, t, r, b, 12, 12, _chrome);
+        _chrome.SetStyle(Paint.Style.Stroke); _chrome.StrokeWidth = 2; _chrome.Color = stroke;
+        c.DrawRoundRect(l, t, r, b, 12, 12, _chrome);
+        _chrome.SetStyle(Paint.Style.Fill);
+    }
+
+    static string Nice(string value) => System.Text.RegularExpressions.Regex.Replace(value,
+        "(?<=[a-z0-9])(?=[A-Z])", " ");
+
+    string Area(GearFrame? frame) => frame == null ? "Awaiting your journey" :
+        Nice(((Sotn.Stage)frame.Status.Stage).ToString()).Replace("First Visit", "");
 
     protected override void OnDraw(Canvas canvas)
     {
         base.OnDraw(canvas);
-        EnsureAssets();
-
-        var mem = RecompOne.Runtime.Runtime.Mem;
-        if (mem == null)
+        canvas.DrawColor(Color.Black);
+        // A fixed device-space layout; drawing AND touch use this single transform.
+        _uiScale = MathF.Min(Width / 1000f, Height / 840f);
+        if (_uiScale <= 0) return;
+        _uiLeft = (Width - 1000 * _uiScale) / 2f;
+        _uiTop = (Height - 840 * _uiScale) / 2f;
+        canvas.Save(); canvas.Translate(_uiLeft, _uiTop); canvas.Scale(_uiScale, _uiScale);
+        Panel(canvas, 10, 10, 990, 830, new Color(29, 18, 29), Gold);
+        Panel(canvas, 22, 22, 978, 818, Ink, new Color(78, 58, 65));
+        // Original geometric corner ornaments, not game artwork.
+        _chrome.Color = Gold; _chrome.StrokeWidth = 2;
+        foreach (float x in new[] { 42f, 958f })
         {
-            canvas.DrawText("waiting for game...", 40f, 60f, _text);
-            return;
+            canvas.DrawLine(x - 8, 42, x + 8, 42, _chrome);
+            canvas.DrawLine(x, 34, x, 50, _chrome);
+            canvas.DrawLine(x - 8, 792, x + 8, 792, _chrome);
         }
-
-        bool secondCastle = (mem.ReadU8(ZoneAddr) & 0x20) == 0x20;
-        var art = secondCastle ? _castle2 : _castle1;
-
-        // Fit the map art to the panel, preserving aspect.
-        float scale = Math.Min(Width / (float)MapArtW, Height / (float)MapArtH);
-        float originX = (Width - MapArtW * scale) * 0.5f;
-        float originY = (Height - MapArtH * scale) * 0.5f;
-
-        DrawVisitedRooms(canvas, mem, scale, originX, originY);
-
-        // Art goes on top: it is the room outlines with the interiors left clear,
-        // so the visited fills below show through.
-        if (art != null)
+        Text(canvas, "CASTLE GEAR", 70, 61, 34, Gold, true);
+        Text(canvas, DateTime.Now.ToString("ddd HH:mm"), 755, 59, 22, Color.LightGray);
+        var frame = Volatile.Read(ref _frame);
+        Text(canvas, Area(frame), 70, 97, 24, Color.LightGray);
+        Text(canvas, frame == null ? "NO SIGNAL" : "LIVE / READ ONLY", 755, 95, 16, Muted);
+        for (int i = 0; i < Tabs.Length; i++)
         {
-            var dst = new RectF(originX, originY,
-                originX + MapArtW * scale, originY + MapArtH * scale);
-            canvas.DrawBitmap(art, null, dst, _bitmap);
+            float x = 42 + i * 306;
+            Panel(canvas, x, 122, x + 296, 182, i == _page ? new Color(65, 32, 47) : Ink,
+                i == _page ? Gold : new Color(64, 49, 59));
+            Text(canvas, Tabs[i], x + 92, 160, 24, i == _page ? Gold : Muted, true);
         }
-
-        DrawPlayer(canvas, mem, secondCastle, scale, originX, originY);
+        Panel(canvas, 42, 200, 958, 758, new Color(8, 9, 16), new Color(68, 58, 71));
+        if (frame == null)
+        {
+            Text(canvas, "The castle awaits.", 250, 409, 36, Gold, true);
+            Text(canvas, "Load a save or enter a stage on the upper screen.", 180, 457, 23, Muted);
+            Text(canvas, "Map, status and journal follow the live game.", 202, 495, 22, Muted);
+        }
+        else if (_page == 0) DrawMap(canvas, frame.Map);
+        else if (_page == 1) DrawStatus(canvas, frame.Status);
+        else DrawJournal(canvas, frame);
+        Text(canvas, "Touch a card to switch pages", 70, 794, 20, Muted);
+        Text(canvas, "AYN THOR", 812, 794, 18, Gold, true);
+        canvas.Restore();
     }
 
-    void DrawVisitedRooms(Canvas canvas, IMemory mem, float scale, float originX, float originY)
+    void DrawMap(Canvas canvas, CastleMapFrame frame)
     {
-        float size = Cell * scale;
-        int rows = Map.Length / GridWidth;
-
-        for (int y = 0; y < rows; y++)
+        _bitmap ??= Bitmap.CreateBitmap(256, 256, Bitmap.Config.Argb8888!)!;
+        if (!ReferenceEquals(frame, _drawn))
         {
-            int cy = y * Cell - RowOffset;
-            if (cy < 0) continue;
+            _bitmap.SetPixels(frame.Pixels, 0, 256, 0, 0, 256, 256);
+            _drawn = frame;
+        }
+        // Physical integer scaling, with the same pixel-space transform for marker.
+        float physicalScale = MathF.Floor(512 * _uiScale / 256);
+        if (physicalScale < 1) physicalScale = 512 * _uiScale / 256;
+        float scale = physicalScale / _uiScale;
+        float left = MathF.Round((_uiLeft + (500 - 128 * scale) * _uiScale)) / _uiScale - _uiLeft / _uiScale;
+        float top = MathF.Round((_uiTop + (480 - 128 * scale) * _uiScale)) / _uiScale - _uiTop / _uiScale;
+        canvas.DrawBitmap(_bitmap, null, new RectF(left, top, left + 256 * scale, top + 256 * scale), _bitmapPaint);
+        if (frame.PlayerPixelX >= 0)
+        {
+            float x = left + (frame.PlayerPixelX + .5f) * scale;
+            float y = top + (frame.PlayerPixelY + .5f) * scale;
+            canvas.DrawRect(x - scale, y - scale, x + scale, y + scale, _markerPaint);
+        }
+        Text(canvas, frame.Inverted ? "INVERTED CASTLE" : "CASTLE", 66, 230, 16, Gold);
+        Text(canvas, $"{frame.Explored} explored / {frame.Known} known", 66, 736, 18, Muted);
+        Text(canvas, "Blue: explored   Gray: blueprint   Gold: you", 520, 736, 17, Muted);
+    }
 
-            for (int x = 0; x < GridWidth; x++)
+    void Meter(Canvas c, string label, int value, int max, float y, Color color)
+    {
+        Text(c, label, 74, y, 22, Muted);
+        Text(c, $"{value} / {max}", 187, y, 28, Color.LightGray);
+        _chrome.Color = new Color(35, 31, 42); c.DrawRect(74, y + 12, 430, y + 26, _chrome);
+        _chrome.Color = color;
+        c.DrawRect(74, y + 12, 74 + 356 * Math.Clamp(value / (float)Math.Max(1, max), 0, 1), y + 26, _chrome);
+    }
+
+    void DrawStatus(Canvas c, GearStatus s)
+    {
+        Text(c, "VITALS", 74, 248, 24, Gold, true);
+        Meter(c, "HP", s.Hp, s.HpMax, 298, new Color(161, 55, 76));
+        Meter(c, "MP", s.Mp, s.MpMax, 372, new Color(74, 100, 172));
+        Meter(c, "HEARTS", s.Hearts, s.HeartsMax, 446, new Color(172, 93, 139));
+        Text(c, $"LEVEL {s.Level}", 74, 540, 30, Gold, true);
+        Text(c, $"EXP  {s.Experience:N0}", 74, 584, 24, Color.LightGray);
+        Text(c, $"GOLD  {s.Gold:N0}", 74, 628, 24, Color.LightGray);
+        Text(c, $"RELICS  {s.Relics} collected", 74, 684, 22, Muted);
+        Text(c, "EQUIPMENT", 504, 248, 24, Gold, true);
+        string[] slots = ["L HAND", "R HAND", "HEAD", "ARMOR", "CAPE", "RING I", "RING II"];
+        for (int i = 0; i < s.Equipment.Length; i++)
+        {
+            float y = 296 + i * 60;
+            string item = i < 2 ? ((Sotn.HandItem)s.Equipment[i]).ToString()
+                : ((Sotn.BodyItem)s.Equipment[i]).ToString();
+            Text(c, slots[i], 504, y, 16, Muted);
+            Text(c, Nice(item), 504, y + 26, 23, Color.LightGray);
+        }
+    }
+
+    void DrawJournal(Canvas c, GearFrame frame)
+    {
+        var s = frame.Status;
+        Text(c, "CHRONICLE", 78, 254, 30, Gold, true);
+        Text(c, "Time played", 78, 318, 23, Muted);
+        Text(c, $"{s.Hours:D2}:{s.Minutes:D2}:{s.Seconds:D2}", 540, 318, 30, Color.LightGray);
+        Text(c, "Rooms explored (both castles)", 78, 382, 23, Muted);
+        Text(c, s.Rooms.ToString(), 740, 382, 30, Color.LightGray);
+        Text(c, "Boss records (time attack)", 78, 446, 23, Muted);
+        Text(c, $"{s.BossRecords} / 20", 740, 446, 30, Color.LightGray);
+        Text(c, "Relics collected", 78, 510, 23, Muted);
+        Text(c, s.Relics.ToString(), 740, 510, 30, Color.LightGray);
+        Text(c, "Music track id", 78, 574, 23, Muted);
+        Text(c, $"0x{s.Music:X2}", 740, 574, 30, Color.LightGray);
+        Text(c, "Records exclude prologue Dracula and rescuing Richter.", 78, 646, 19, Muted);
+        Text(c, "Map percentage and named music archive: planned.", 78, 689, 20, Muted);
+    }
+
+    int TabAt(float rawX, float rawY)
+    {
+        float x = (rawX - _uiLeft) / _uiScale, y = (rawY - _uiTop) / _uiScale;
+        if (y < 122 || y > 182) return -1;
+        for (int i = 0; i < Tabs.Length; i++) if (x >= 42 + i * 306 && x <= 338 + i * 306) return i;
+        return -1;
+    }
+
+    public override bool OnTouchEvent(MotionEvent? e)
+    {
+        if (e == null) return false;
+        if (e.ActionMasked == MotionEventActions.Down) _touchTab = TabAt(e.GetX(), e.GetY());
+        else if (e.ActionMasked == MotionEventActions.Up)
+        {
+            int tab = TabAt(e.GetX(), e.GetY());
+            if (tab >= 0 && tab == _touchTab)
             {
-                if (mem.ReadU8(Map.CastleMapAddr + (uint)(y * GridWidth + x)) == 0) continue;
-                float px = originX + x * Cell * scale;
-                float py = originY + cy * scale;
-                canvas.DrawRect(px, py, px + size, py + size, _visited);
+                _page = tab;
+                Console.WriteLine($"[CastleGear] PAGE {Tabs[tab]}");
+                Invalidate(); PerformClick();
             }
+            _touchTab = -1;
         }
+        else if (e.ActionMasked == MotionEventActions.Cancel) _touchTab = -1;
+        return true; // Never forward companion touches as gameplay input.
     }
 
-    void DrawPlayer(Canvas canvas, IMemory mem, bool secondCastle,
-                    float scale, float originX, float originY)
-    {
-        // 3 is "in a stage"; anything else means the position words are stale.
-        if (mem.ReadU8(PlayStateAddr) != 3) return;
-
-        int cx = mem.ReadU8(CastleXAddr) + mem.ReadU16(RoomXAddr) / 256;
-        int cy = mem.ReadU8(CastleYAddr) + mem.ReadU16(RoomYAddr) / 256;
-        if (secondCastle) cy -= 7;
-
-        if (cx < 0 || cx >= GridWidth || cy < 0) return;
-
-        int drawY = cy * Cell - RowOffset;
-        if (drawY < 0) return;
-
-        float size = Cell * scale;
-        float px = originX + cx * Cell * scale;
-        float py = originY + drawY * scale;
-        canvas.DrawRect(px, py, px + size, py + size, _player);
-    }
+    public override bool PerformClick() { base.PerformClick(); return true; }
 
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
-            _castle1?.Recycle();
-            _castle2?.Recycle();
+            if (_subscribed) Event.RemoveListener<VSyncEvent>(Capture);
+            _subscribed = false;
+            _bitmap?.Recycle();
+            _bitmap?.Dispose();
+            _bitmapPaint.Dispose();
+            _markerPaint.Dispose();
+            _textPaint.Dispose();
+            _chrome.Dispose();
+            _titleFont.Dispose();
+            _bodyFont.Dispose();
         }
         base.Dispose(disposing);
     }

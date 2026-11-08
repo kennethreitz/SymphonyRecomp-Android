@@ -29,6 +29,13 @@ public sealed class MapPresentation : Presentation
     protected override void OnCreate(Bundle? savedInstanceState)
     {
         base.OnCreate(savedInstanceState);
+        RequestWindowFeature((int)WindowFeatures.NoTitle);
+        Window?.SetBackgroundDrawable(new global::Android.Graphics.Drawables.ColorDrawable(global::Android.Graphics.Color.Black));
+        // NotFocusable keeps hardware buttons with the game; touch still belongs
+        // to this display's tabs. Do not set NotTouchable.
+        Window?.AddFlags(WindowManagerFlags.Fullscreen | WindowManagerFlags.NotFocusable);
+        if (Window?.DecorView != null) Window.DecorView.SystemUiFlags =
+            SystemUiFlags.Fullscreen | SystemUiFlags.HideNavigation | SystemUiFlags.ImmersiveSticky;
 
         _view = new CastleMapView(Context!);
 
@@ -48,6 +55,7 @@ public sealed class MapPresentation : Presentation
     protected override void OnStart()
     {
         base.OnStart();
+        Window?.SetLayout(ViewGroup.LayoutParams.MatchParent, ViewGroup.LayoutParams.MatchParent);
         if (_tick != null) _handler?.PostDelayed(_tick, RefreshMs);
     }
 

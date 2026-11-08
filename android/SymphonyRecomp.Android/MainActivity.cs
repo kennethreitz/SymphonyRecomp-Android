@@ -237,6 +237,14 @@ public sealed class MainActivity : Activity, ISurfaceHolderCallback
     {
         base.OnResume();
         GoImmersive();
+        if (_mapPresentation == null) ShowMapOnSecondScreen();
+    }
+
+    protected override void OnPause()
+    {
+        try { _mapPresentation?.Dismiss(); } catch { /* display already gone */ }
+        _mapPresentation = null;
+        base.OnPause();
     }
 
     protected override void OnDestroy()
