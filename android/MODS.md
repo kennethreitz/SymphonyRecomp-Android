@@ -398,3 +398,20 @@ Repeated VSync notifications within one native clock frame retain the original
 comparison baseline. Title/demo transitions cannot count as player game overs.
 Bundled source is intentionally seed-only: deploy an updated source file normally
 into the existing mod folder when iterating; user source is never silently replaced.
+
+
+## SkipPrologue source mod
+
+`android/mods/SkipPrologue/` is an event-only, opt-in fresh-ALUCARD-game mod.
+Set `"skip-prologue": true` in `mod-settings.json`. It observes the actual native
+name-entry/confirmation flow; loading a save cancels it. Existing games and
+Richter/custom starts cannot arm it. There are no save-file operations or detours.
+The APK seeds missing source files into the app-owned mods folder.
+
+It routes to the native first-visit entrance, uses the native opening-skip loader,
+supplies a full-health/Cross/fast-tier Richter outcome to native InitStatsAndGear,
+and selects the native completed-entrance spawn after the castle reset. It does
+not assign final Alucard stats/equipment, skip Death later, or pre-complete Maria
+or main-game bosses. The synthetic Dracula time record is one second. The detailed
+safety fence, profile, side effects, source citations and save-free test procedure
+are in [SkipPrologue/README.md](mods/SkipPrologue/README.md).
