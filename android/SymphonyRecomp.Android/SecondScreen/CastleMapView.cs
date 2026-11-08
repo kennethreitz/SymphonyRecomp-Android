@@ -37,6 +37,9 @@ public sealed class CastleMapView : View
     int _mapControl = -1;
     float _mapScale;
     bool _needsMapFocus;
+    PlayerPortrait? _portrait, _drawnPortrait;
+    Bitmap? _portraitBitmap;
+    uint? _reportedNext;
 
     public CastleMapView(Context context) : base(context) => SetBackgroundColor(Color.Black);
 
@@ -78,6 +81,11 @@ public sealed class CastleMapView : View
             for (int i = 0; i < _flags.Length; i++)
                 _flags[i] = mem.ReadU8(CastleMapFrame.FlagsAddress + (uint)i);
             var (clutX, clutY) = CastleMapFrame.ClutOrigin(mem.ReadU16(CastleMapFrame.MapClutAddress));
+            uint character = mem.ReadU32(PlayerPortrait.CharacterAddress);
+            if (_portrait?.CharacterId != character) _portrait = null;
+            // Menus reuse texture memory. Keep the last good live sprite there.
+            var portraitSource = mem.ReadU32(0x8003C9A4) == 1
+                ? PlayerPortrait.Describe(mem.ReadU32,mem.ReadU16) : null;
             // HLE rendering owns the authoritative VRAM texture. The CPU shadow
             // is stale until StoreImage reads it back; use the supported GPU queue.
             GpuJobs.Run(() =>
@@ -88,6 +96,14 @@ public sealed class CastleMapView : View
                     backend.ReadVram(CastleMapFrame.VramX, CastleMapFrame.VramY,
                         CastleMapFrame.VramRowWords, CastleMapFrame.Size, _map);
                     backend.ReadVram(clutX, clutY, 16, 1, _palette);
+                    if (portraitSource is { } p)
+                    {
+                        var pixels = new ushort[p.Words*p.Height]; var colors = new ushort[16];
+                        var (px,py) = CastleMapFrame.ClutOrigin(p.Clut);
+                        backend.ReadVram(p.X,p.Y,p.Words,p.Height,pixels);
+                        backend.ReadVram(px,py,16,1,colors);
+                        _portrait = PlayerPortrait.Decode(p,pixels,colors);
+                    }
                 }
                 else
                 {
@@ -102,7 +118,12 @@ public sealed class CastleMapView : View
             var frame = CastleMapFrame.Decode(_flags, _map, _palette,
                 inverted, playerX, playerY);
             var status = GearStatus.Read(mem.ReadU32, mem.ReadU8);
-            Volatile.Write(ref _frame, new GearFrame(frame, status));
+            Volatile.Write(ref _frame, new GearFrame(frame, status, _portrait));
+            if (_reportedNext != status.LevelProgress.Next)
+            {
+                Console.WriteLine($"[CastleGear] LEVEL={status.Level} EXP={status.Experience} NEXT={status.LevelProgress.Next} RANGE={status.LevelProgress.Start}..{status.LevelProgress.End} PORTRAIT={_portrait?.Name} {_portrait?.Width}x{_portrait?.Height}");
+                _reportedNext=status.LevelProgress.Next;
+            }
             if (_reportedCastle != inverted)
             {
                 Console.WriteLine($"[MapV2] LIVE_BITMAP FLAGS=8006bb74 VRAM=832,256 CLUT={clutX},{clutY} " +
@@ -162,7 +183,6 @@ public sealed class CastleMapView : View
         {
             canvas.DrawLine(x - 8, 42, x + 8, 42, _chrome);
             canvas.DrawLine(x, 34, x, 50, _chrome);
-            canvas.DrawLine(x - 8, 792, x + 8, 792, _chrome);
         }
         Text(canvas, "CASTLE GEAR", 70, 61, 34, Gold, true);
         Text(canvas, DateTime.Now.ToString("ddd HH:mm"), 755, 59, 22, Color.LightGray);
@@ -176,18 +196,16 @@ public sealed class CastleMapView : View
                 i == _page ? Gold : new Color(64, 49, 59));
             Text(canvas, Tabs[i], x + 92, 160, 24, i == _page ? Gold : Muted, true);
         }
-        Panel(canvas, 42, 200, 958, 758, new Color(8, 9, 16), new Color(68, 58, 71));
+        Panel(canvas, 42, 200, 958, 798, new Color(8, 9, 16), new Color(68, 58, 71));
         if (frame == null)
         {
             Text(canvas, "The castle awaits.", 250, 409, 36, Gold, true);
             Text(canvas, "Load a save or enter a stage on the upper screen.", 180, 457, 23, Muted);
             Text(canvas, "Map, status and journal follow the live game.", 202, 495, 22, Muted);
         }
-        else if (_page == 0) DrawStatus(canvas, frame.Status);
+        else if (_page == 0) DrawStatus(canvas, frame);
         else if (_page == 1) DrawMap(canvas, frame.Map);
         else DrawJournal(canvas, frame);
-        Text(canvas, "Touch a card to switch pages", 70, 794, 20, Muted);
-        Text(canvas, "AYN THOR", 812, 794, 18, Gold, true);
         canvas.Restore();
     }
 
@@ -209,7 +227,7 @@ public sealed class CastleMapView : View
         var origin = _viewport.Project(0,0,scale);
         float left = MathF.Round(_uiLeft + origin.X * _uiScale) / _uiScale - _uiLeft / _uiScale;
         float top = MathF.Round(_uiTop + origin.Y * _uiScale) / _uiScale - _uiTop / _uiScale;
-        canvas.Save(); canvas.ClipRect(66, 260, 934, 710);
+        canvas.Save(); canvas.ClipRect(66, 260, 934, 750);
         canvas.DrawColor(Color.Black);
         canvas.DrawBitmap(_bitmap, null, new RectF(left, top, left + 256 * scale, top + 256 * scale), _bitmapPaint);
         if (frame.PlayerPixelX >= 0)
@@ -228,8 +246,8 @@ public sealed class CastleMapView : View
         }
         Text(canvas, $"{_viewport.Zoom:0.#}x", 564, 236, 20, Muted);
         Text(canvas, frame.Inverted ? "INVERTED CASTLE" : "CASTLE", 66, 230, 16, Gold);
-        Text(canvas, $"{frame.Explored} explored / {frame.Known} charted-only", 66, 736, 18, Muted);
-        Text(canvas, "Drag / pinch / +/- to zoom. FIT resets.", 520, 736, 17, Muted);
+        Text(canvas, $"{frame.Explored} explored / {frame.Known} charted-only", 66, 776, 18, Muted);
+        Text(canvas, "Drag / pinch / +/- to zoom. FIT resets.", 520, 776, 17, Muted);
     }
 
     void Meter(Canvas c, string label, int value, int max, float y, Color color)
@@ -241,26 +259,54 @@ public sealed class CastleMapView : View
         c.DrawRect(74, y + 12, 74 + 356 * Math.Clamp(value / (float)Math.Max(1, max), 0, 1), y + 26, _chrome);
     }
 
-    void DrawStatus(Canvas c, GearStatus s)
+    void DrawStatus(Canvas c, GearFrame frame)
     {
+        var s = frame.Status;
         Text(c, "VITALS", 74, 248, 24, Gold, true);
         Meter(c, "HP", s.Hp, s.HpMax, 298, new Color(161, 55, 76));
         Meter(c, "MP", s.Mp, s.MpMax, 372, new Color(74, 100, 172));
         Meter(c, "HEARTS", s.Hearts, s.HeartsMax, 446, new Color(172, 93, 139));
-        Text(c, $"LEVEL {s.Level}", 74, 540, 30, Gold, true);
-        Text(c, $"EXP  {s.Experience:N0}", 74, 584, 24, Color.LightGray);
-        Text(c, $"GOLD  {s.Gold:N0}", 74, 628, 24, Color.LightGray);
-        Text(c, $"RELICS  {s.Relics} collected", 74, 684, 22, Muted);
-        Text(c, "EQUIPMENT", 504, 248, 24, Gold, true);
+        Text(c, $"LEVEL {s.Level}", 74, 528, 30, Gold, true);
+        Text(c, $"EXP  {s.Experience:N0}", 74, 570, 24, Color.LightGray);
+        var exp=s.LevelProgress;
+        string next = exp.MaxLevel ? "0 / MAX LEVEL" : exp.Available ? exp.Next.ToString("N0") : "--";
+        Text(c, $"NEXT  {next}", 74, 610, 24, Gold);
+        Panel(c,74,628,430,648,new Color(35,31,42),Gold);
+        if(exp.Available) { _chrome.Color=Gold; c.DrawRect(78,632,78+348*exp.Fraction,644,_chrome); }
+        Text(c, $"GOLD  {s.Gold:N0}", 74, 704, 24, Color.LightGray);
+        Text(c, $"RELICS  {s.Relics} collected", 74, 752, 22, Muted);
+        Text(c, frame.Portrait?.Name ?? "CURRENT PLAYER",504,248,24,Gold,true);
+        Text(c, "Live game sprite",504,282,18,Muted);
+        Panel(c,782,216,934,408,Ink,new Color(78,58,65));
+        DrawPortrait(c,frame.Portrait);
+        Text(c, "EQUIPMENT", 504, 436, 24, Gold, true);
         string[] slots = ["L HAND", "R HAND", "HEAD", "ARMOR", "CAPE", "RING I", "RING II"];
         for (int i = 0; i < s.Equipment.Length; i++)
         {
-            float y = 296 + i * 60;
+            float y = 475 + i * 44;
             string item = i < 2 ? ((Sotn.HandItem)s.Equipment[i]).ToString()
                 : ((Sotn.BodyItem)s.Equipment[i]).ToString();
             Text(c, slots[i], 504, y, 16, Muted);
-            Text(c, Nice(item), 504, y + 26, 23, Color.LightGray);
+            Text(c, Nice(item), 504, y + 23, 21, Color.LightGray);
         }
+    }
+
+    void DrawPortrait(Canvas c, PlayerPortrait? portrait)
+    {
+        if(portrait==null) { Text(c,"--",836,316,22,Muted); return; }
+        if(_portraitBitmap==null || _portraitBitmap.Width!=portrait.Width || _portraitBitmap.Height!=portrait.Height)
+        {
+            _portraitBitmap?.Recycle();
+            _portraitBitmap=Bitmap.CreateBitmap(portrait.Width,portrait.Height,Bitmap.Config.Argb8888!)!;
+            _drawnPortrait=null;
+        }
+        if(!ReferenceEquals(_drawnPortrait,portrait))
+        { _portraitBitmap.SetPixels(portrait.Pixels,0,portrait.Width,0,0,portrait.Width,portrait.Height); _drawnPortrait=portrait; }
+        float scale=PlayerPortrait.FitScale(portrait.Width,portrait.Height,132,172);
+        float integerScale=MathF.Floor(scale*_uiScale)/_uiScale;
+        if(integerScale>0) scale=integerScale;
+        float w=portrait.Width*scale,h=portrait.Height*scale;
+        c.DrawBitmap(_portraitBitmap,null,new RectF(858-w/2,312-h/2,858+w/2,312+h/2),_bitmapPaint);
     }
 
     void DrawJournal(Canvas c, GearFrame frame)
@@ -304,7 +350,7 @@ public sealed class CastleMapView : View
         {
             _touchTab = TabAt(e.GetX(), e.GetY());
             _mapControl = _page == 1 ? MapControlAt(x,y) : -1;
-            _mapDrag = _page == 1 && x >= 66 && x <= 934 && y >= 260 && y <= 710;
+            _mapDrag = _page == 1 && x >= 66 && x <= 934 && y >= 260 && y <= 750;
             _dragX = x; _dragY = y; _pinchSpan = 0;
         }
         else if (_mapDrag && e.PointerCount >= 2)

@@ -4,7 +4,7 @@ namespace SymphonyRecomp.Android.SecondScreen;
 // Use the actual seven equipment ids at 0x29c, NOT attackHands damage at 0x2b8.
 public sealed record GearStatus(int Hp, int HpMax, int Mp, int MpMax, int Hearts,
     int HeartsMax, int Level, uint Experience, uint Gold, int Relics, uint[] Equipment,
-    int Hours, int Minutes, int Seconds, int Rooms, int BossRecords, uint Stage, uint Music)
+    int Hours, int Minutes, int Seconds, int Rooms, int BossRecords, uint Stage, uint Music, LevelExperience LevelProgress)
 {
     public const uint StatusAddress = 0x80097964;
     public static GearStatus Read(Func<uint, uint> word, Func<uint, byte> octet)
@@ -23,8 +23,9 @@ public sealed record GearStatus(int Hp, int HpMax, int Mp, int MpMax, int Hearts
             (int)word(s + 0x244), (int)word(s + 0x248),
             (int)word(s + 0x284), word(s + 0x288), word(s + 0x28c), relics, equipment,
             (int)word(s + 0x2cc), (int)word(s + 0x2d0), (int)word(s + 0x2d4),
-            (int)word(0x8003C760), bosses, word(0x800974A0), octet(0x8013901c));
+            (int)word(0x8003C760), bosses, word(0x800974A0), octet(0x8013901c),
+            LevelExperience.Read((int)word(s+0x284),word(s+0x288),word));
     }
 }
 
-public sealed record GearFrame(CastleMapFrame Map, GearStatus Status);
+public sealed record GearFrame(CastleMapFrame Map, GearStatus Status, PlayerPortrait? Portrait = null);

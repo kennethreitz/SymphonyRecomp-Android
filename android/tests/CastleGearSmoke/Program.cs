@@ -50,8 +50,10 @@ words[s+0x2b8]=999; words[s+0x2cc]=3; words[s+0x2d0]=4; words[s+0x2d4]=5;
 words[0x8003C760]=145; words[0x800974a0]=0x27;
 bytes[s]=1; bytes[s+1]=3; bytes[s+2]=2; bytes[0x8013901c]=17;
 foreach(uint i in new uint[]{0,1,14,21,22}) words[0x8003ca28+i*4]=99;
+words[LevelExperience.TableAddress+9*4]=1000; words[LevelExperience.TableAddress+10*4]=1500;
 var status = GearStatus.Read(a=>words.GetValueOrDefault(a), a=>bytes.GetValueOrDefault(a));
 Check(status.Hp==37 && status.HpMax==80 && status.Mp==12 && status.Hearts==8, "real PlayerStatus vitals offsets");
+Check(status.LevelProgress.Next==266 && Math.Abs(status.LevelProgress.Fraction-.468f)<.0001,"snapshot reads both native level thresholds");
 Check(status.Level==9 && status.Experience==1234 && status.Gold==500, "level experience gold offsets");
 Check(status.Equipment.SequenceEqual(new uint[]{10,11,12,13,14,15,16}), "all seven actual equipment ids, not attack damage");
 Check(status.Relics==2, "relic found bit, not activation bit");
@@ -68,7 +70,7 @@ viewport.FocusPlayer(30,122);
 Check(viewport.Zoom==4 && viewport.CenterX==30 && viewport.CenterY==122,"MAP opens 4x centered on Alchemy Lab save-room pause-map pixel");
 Check(CastleMapFrame.PlayerPixel(7,30,false)==(30,122),"US DrawMapCursor cell 7,30 uses exact native pixel 30,122");
 var projected = viewport.Project(30,122,8);
-Check(projected==(500,485),"native current room and marker project to the same viewport center");
+Check(projected==(500,505),"native current room and marker project to the same viewport center");
 var origin=viewport.Project(0,0,8);
 Check(origin.X+30*8==projected.X && origin.Y+122*8==projected.Y,"letterbox/viewport origin shared by native bitmap and marker");
 Check(RecompOne.Runtime.Hle.PsxPixel.FromRgba8(255,0,0,255)==0x801f,"guaranteed GLES RGBA8 readback converts red plus STP");
@@ -76,4 +78,34 @@ Check(RecompOne.Runtime.Hle.PsxPixel.FromRgba8(0,255,0,0)==0x03e0,"RGBA8 readbac
 for(int v=0;v<32;v++) { byte expanded=(byte)((v*255+15)/31); Check((RecompOne.Runtime.Hle.PsxPixel.FromRgba8(expanded,0,0,0)&31)==v,"all 5-bit channels round trip through RGBA8 "+v); }
 Check(CastleMapFrame.ClutOrigin(0x3d20)==(512,244),"map CLUT origin decoded from the game CLUT id, never hardcoded");
 Check(CastleMapFrame.MapClutAddress==0x8003C484,"InitFade logical map palette 0x1c0 resolves through g_ClutIds");
+
+var threshold=new Dictionary<uint,uint> { [LevelExperience.TableAddress+4*4]=500,[LevelExperience.TableAddress+5*4]=950 };
+var xp=LevelExperience.Read(4,675,a=>threshold.GetValueOrDefault(a));
+Check(xp.Next==275 && Math.Abs(xp.Fraction-175f/450)<.0001,"NEXT uses next-level table entry and current-level progress");
+Check(LevelExperience.Read(4,500,a=>threshold.GetValueOrDefault(a)).Fraction==0,"new level starts empty");
+Check(LevelExperience.Read(4,950,a=>threshold.GetValueOrDefault(a)).Next==0,"threshold reached has no unsigned NEXT underflow");
+Check(LevelExperience.Read(4,499,a=>threshold.GetValueOrDefault(a)).Fraction==0,"experience below threshold clamps progress");
+var maximum=LevelExperience.Read(99,uint.MaxValue,_=>throw new Exception("max level must not read past table"));
+Check(maximum.Next==0 && maximum.Fraction==1 && maximum.MaxLevel,"level 99 shows NEXT 0/MAX with full bar and no level-100 lookup");
+Check(!LevelExperience.Read(0,0,_=>0).Available && !LevelExperience.Read(100,0,_=>0).Available,"invalid levels do not index game table");
+Check(!LevelExperience.Read(4,0,_=>100).Available,"invalid/zero-width threshold range is guarded");
+var portraitPalette=new ushort[16];portraitPalette[1]=31;portraitPalette[2]=0x7c00;
+var source=new PlayerPortrait.Source(513,257,1,1,0,false,0);
+var sprite=PlayerPortrait.Decode(source,new ushort[]{0x0201},portraitPalette);
+Check(sprite.Pixels[0]==CastleMapFrame.Color555(31) && sprite.Pixels[1]==0 && sprite.Pixels[2]==CastleMapFrame.Color555(0x7c00),"live 4bpp sprite nibble order and transparent index zero");
+var flipped=PlayerPortrait.Decode(source with {Flip=true,CharacterId=1},new ushort[]{0x0201},portraitPalette);
+Check(flipped.Pixels[3]==sprite.Pixels[0] && flipped.Name=="RICHTER","current character identity and facing preserved, not hardcoded Alucard");
+Check(PlayerPortrait.FitScale(32,64,132,172)==172f/64,"portrait scaling preserves aspect ratio");
+Check(PlayerPortrait.Describe(_=>0,_=>0)==null,"missing entity sprite metadata safely hides portrait");
+
+var portraitWords=new Dictionary<uint,uint> { [0x800A3B74]=0x80100000,[0x80100004]=0x80101000,[PlayerPortrait.CharacterAddress]=0 };
+var portraitHalves=new Dictionary<uint,ushort> { [0x8007342c]=1,[0x8007342e]=1,[0x80101000]=0x8001,[0x80097d1c]=513,[0x80097d1e]=257,[0x80097d20]=8,[0x80097d22]=64,[0x800733ee]=0x8100,[0x8003c304]=0x3c00 };
+var described=PlayerPortrait.Describe(a=>portraitWords.GetValueOrDefault(a),a=>portraitHalves.GetValueOrDefault(a));
+Check(described is {X:513,Y:257,Words:8,Height:64,CharacterId:0},"Alucard entity resolves renderer-owned streamed VRAM rectangle");
+portraitHalves[0x8007342c]=0x8001;portraitWords[0x8003c788]=0x800f0000;portraitWords[0x800f0004]=0x80100000;portraitWords[PlayerPortrait.CharacterAddress]=1;
+described=PlayerPortrait.Describe(a=>portraitWords.GetValueOrDefault(a),a=>portraitHalves.GetValueOrDefault(a));
+Check(described is {CharacterId:1,Words:8},"Richter/overlay negative animation bank uses the same live extraction path");
+portraitHalves[0x80097d22]=500;
+Check(PlayerPortrait.Describe(a=>portraitWords.GetValueOrDefault(a),a=>portraitHalves.GetValueOrDefault(a))==null,"out-of-bounds sprite readback is rejected");
+
 Console.WriteLine($"Castle Gear: {checks} ROM-free checks passed");
