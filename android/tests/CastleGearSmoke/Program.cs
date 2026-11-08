@@ -26,19 +26,19 @@ for (int x = 0; x < 4; x++) Check(CastleMapFrame.StateAt(flags, x, 0, true) == n
 flags[0x7ff] = 1;
 Check(CastleMapFrame.StateAt(flags, 63, 63, true) == 1, "last inverted cell in bounds");
 Check(CastleMapFrame.StateAt(flags, -1, 64, true) == 0, "invalid cell hidden");
-var blueprint = new byte[32768]; var map = new ushort[16384]; var palette = new ushort[16];
+var map = new ushort[16384]; var palette = new ushort[16];
 palette[1] = 31; palette[2] = 31 << 10;
 map[20 * 64 + 10] = 0x0021; // x40 red, x41 blue, low nibble first.
-blueprint[20 * 128 + 21] = 0x20; // high nibble x43: unexplored blueprint only.
-var normal = CastleMapFrame.Decode(blueprint, flags, map, palette, false, 10, 5);
-Check(normal.Explored == 2 && normal.Known == 3, "packed explored/known counts, no other castle bleed");
+
+var normal = CastleMapFrame.Decode(flags, map, palette, false, 10, 5);
+Check(normal.Explored == 2 && normal.Known == 1, "packed explored/known counts, no other castle bleed");
 Check(normal.Pixels[20 * 256 + 40] == unchecked((int)0xffff0000), "PSX BGR555 red and low nibble");
 Check(normal.Pixels[20 * 256 + 41] == unchecked((int)0xff0000ff), "high VRAM nibble blue");
 Check(normal.Pixels[20 * 256 + 42] == unchecked((int)0xff000000), "no rectangular fill over empty geometry");
-Check(normal.Pixels[20 * 256 + 43] != unchecked((int)0xff000000), "RAM blueprint uses same pixel grid");
+Check(normal.Pixels[20 * 256 + 43] == unchecked((int)0xff000000), "unexplored blueprint is hidden, not painted as explored rooms");
 Check((normal.PlayerPixelX, normal.PlayerPixelY) == (42,22), "normal marker shares bitmap coordinates");
-var inverted = CastleMapFrame.Decode(blueprint, flags, map, palette, true, 53, 58);
-Check(inverted.Explored == 3 && inverted.Known == 4, "inverted bank counts");
+var inverted = CastleMapFrame.Decode(flags, map, palette, true, 53, 58);
+Check(inverted.Explored == 3 && inverted.Known == 1, "inverted bank counts");
 Check(inverted.Pixels[235 * 256 + 215] == normal.Pixels[20 * 256 + 40], "inverted pixels rotate exactly 180 degrees");
 Check((inverted.PlayerPixelX, inverted.PlayerPixelY) == (213,233), "inverted marker rotates with same transform, no magic row offset");
 Check(CastleMapFrame.PlayerPixel(64, 2, false) == (-1,-1), "out-of-range marker absent");
@@ -59,8 +59,19 @@ Check(status.BossRecords==2, "boss records exclude prologue, Richter rescue and 
 Check(status.Hours==3 && status.Minutes==4 && status.Seconds==5 && status.Rooms==145, "play time and global rooms");
 Check(status.Stage==0x27 && status.Music==17, "area and current music id");
 var viewport = new MapViewport();
+viewport.Reset();
 viewport.PanBy(999,-999); Check(viewport.CenterX==128 && viewport.CenterY==128,"fit cannot pan map out of view");
 viewport.ScaleBy(2); viewport.PanBy(30,-20); Check(viewport.Zoom==2 && viewport.CenterX==158 && viewport.CenterY==108,"zoomed drag pans in source-pixel coordinates");
-viewport.ScaleBy(100); viewport.PanBy(999,-999); Check(viewport.Zoom==8 && viewport.CenterX==240 && viewport.CenterY==16,"zoom and pan are bounded");
+viewport.ScaleBy(100); viewport.PanBy(999,-999); Check(viewport.Zoom==8 && viewport.CenterX==256 && viewport.CenterY==0,"zoom and pan are bounded");
 viewport.Reset(); Check(viewport.Zoom==1 && viewport.CenterX==128 && viewport.CenterY==128,"FIT resets zoom and pan");
+viewport.FocusPlayer(30,122);
+Check(viewport.Zoom==4 && viewport.CenterX==30 && viewport.CenterY==122,"MAP opens 4x centered on Alchemy Lab save-room pause-map pixel");
+Check(CastleMapFrame.PlayerPixel(7,30,false)==(30,122),"US DrawMapCursor cell 7,30 uses exact native pixel 30,122");
+var projected = viewport.Project(30,122,8);
+Check(projected==(500,485),"native current room and marker project to the same viewport center");
+var origin=viewport.Project(0,0,8);
+Check(origin.X+30*8==projected.X && origin.Y+122*8==projected.Y,"letterbox/viewport origin shared by native bitmap and marker");
+Check(RecompOne.Runtime.Hle.PsxPixel.FromRgba8(255,0,0,255)==0x801f,"guaranteed GLES RGBA8 readback converts red plus STP");
+Check(RecompOne.Runtime.Hle.PsxPixel.FromRgba8(0,255,0,0)==0x03e0,"RGBA8 readback converts green without alpha");
+for(int v=0;v<32;v++) { byte expanded=(byte)((v*255+15)/31); Check((RecompOne.Runtime.Hle.PsxPixel.FromRgba8(expanded,0,0,0)&31)==v,"all 5-bit channels round trip through RGBA8 "+v); }
 Console.WriteLine($"Castle Gear: {checks} ROM-free checks passed");

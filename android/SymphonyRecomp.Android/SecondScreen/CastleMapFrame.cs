@@ -8,7 +8,6 @@ public sealed record CastleMapFrame(int[] Pixels, bool Inverted, int Explored,
     public const int Size = 256;
     public const int Cell = 4;
     public const int Grid = 64;
-    public const uint BlueprintAddress = 0x801E0000;
     public const uint FlagsAddress = 0x8006BB74;
     public const int VramX = 832, VramY = 256, VramRowWords = 64;
     public const int PaletteX = 0, PaletteY = 7; // PSX CLUT id 0x1c0
@@ -39,11 +38,10 @@ public sealed record CastleMapFrame(int[] Pixels, bool Inverted, int Explored,
             | ((g * 255 / 31) << 8) | (b * 255 / 31);
     }
 
-    public static CastleMapFrame Decode(ReadOnlySpan<byte> blueprint,
-        ReadOnlySpan<byte> flags, ReadOnlySpan<ushort> map, ReadOnlySpan<ushort> palette,
+    public static CastleMapFrame Decode(ReadOnlySpan<byte> flags, ReadOnlySpan<ushort> map, ReadOnlySpan<ushort> palette,
         bool inverted, int playerX, int playerY)
     {
-        if (blueprint.Length != Size * Size / 2 || flags.Length != 0x800 ||
+        if (flags.Length != 0x800 ||
             map.Length != Size * VramRowWords || palette.Length != 16)
             throw new ArgumentException("Invalid castle map snapshot dimensions");
         int explored = 0, known = 0;
@@ -52,20 +50,16 @@ public sealed record CastleMapFrame(int[] Pixels, bool Inverted, int Explored,
         {
             int state = StateAt(flags, x, y, inverted);
             if ((state & 1) != 0) explored++;
-            if (state != 0) known++;
+            if ((state & 2) != 0 && (state & 1) == 0) known++;
         }
         var pixels = new int[Size * Size];
         for (int y = 0; y < Size; y++)
         for (int x = 0; x < Size; x++)
         {
             int live = (map[y * VramRowWords + x / 4] >> ((x & 3) * 4)) & 15;
-            int original = (blueprint[y * Size / 2 + x / 2] >> ((x & 1) * 4)) & 15;
-            // Live VRAM already includes the game's explored fills, shared walls,
-            // save/warp colors and secret passage pixels. Never paint cell rectangles.
-            // Underlay the same RAM blueprint, dimmed, as an unexplored-castle guide.
-            int color = live != 0 ? Color555(palette[live]) : original == 0
-                ? unchecked((int)0xff000000) : original <= 2
-                ? unchecked((int)0xff202630) : unchecked((int)0xff485260);
+            // Blit only the game's actual pause-map pixels. Both outline and
+            // fills are already registered by the game; no full-castle underlay.
+            int color = live != 0 ? Color555(palette[live]) : unchecked((int)0xff000000);
             var (dx, dy) = Transform(x, y, inverted);
             pixels[dy * Size + dx] = color;
         }

@@ -16,7 +16,7 @@ public sealed class CastleMapView : View
     readonly Paint _bitmapPaint = new() { FilterBitmap = false, AntiAlias = false };
     readonly Paint _markerPaint = new() { Color = Color.Yellow, AntiAlias = false };
     readonly Paint _textPaint = new() { Color = Color.LightGray, TextSize = 24, AntiAlias = true };
-    readonly byte[] _blueprint = new byte[32768], _flags = new byte[0x800];
+    readonly byte[] _flags = new byte[0x800];
     readonly ushort[] _map = new ushort[16384], _palette = new ushort[16];
     Bitmap? _bitmap;
     GearFrame? _frame;
@@ -27,7 +27,7 @@ public sealed class CastleMapView : View
     readonly Typeface _titleFont = Typeface.Create("serif", TypefaceStyle.Bold)!;
     readonly Typeface _bodyFont = Typeface.Create("sans-serif", TypefaceStyle.Normal)!;
     static readonly Color Gold = new(178, 143, 84), Ink = new(13, 12, 20), Muted = new(139, 133, 143);
-    static readonly string[] Tabs = ["MAP", "STATUS", "JOURNAL"];
+    static readonly string[] Tabs = ["STATUS", "MAP", "JOURNAL"];
     long _lastCapture;
     bool _subscribed, _reportedError;
     bool? _reportedCastle;
@@ -36,6 +36,7 @@ public sealed class CastleMapView : View
     bool _mapDrag;
     int _mapControl = -1;
     float _mapScale;
+    bool _needsMapFocus;
 
     public CastleMapView(Context context) : base(context) => SetBackgroundColor(Color.Black);
 
@@ -74,8 +75,6 @@ public sealed class CastleMapView : View
                 return;
             }
             bool inverted = (mem.ReadU32(0x800974A0) & 0x20) != 0;
-            for (int i = 0; i < _blueprint.Length; i++)
-                _blueprint[i] = mem.ReadU8(CastleMapFrame.BlueprintAddress + (uint)i);
             for (int i = 0; i < _flags.Length; i++)
                 _flags[i] = mem.ReadU8(CastleMapFrame.FlagsAddress + (uint)i);
             // HLE rendering owns the authoritative VRAM texture. The CPU shadow
@@ -99,15 +98,16 @@ public sealed class CastleMapView : View
             });
             int playerX = (int)mem.ReadU32(0x800730B0) + ((int)mem.ReadU32(0x800973F0) >> 8);
             int playerY = (int)mem.ReadU32(0x800730B4) + ((int)mem.ReadU32(0x800973F4) >> 8);
-            var frame = CastleMapFrame.Decode(_blueprint, _flags, _map, _palette,
+            var frame = CastleMapFrame.Decode(_flags, _map, _palette,
                 inverted, playerX, playerY);
             var status = GearStatus.Read(mem.ReadU32, mem.ReadU8);
             Volatile.Write(ref _frame, new GearFrame(frame, status));
             if (_reportedCastle != inverted)
             {
-                Console.WriteLine($"[MapV2] LIVE_BITMAP RAM=801e0000 VRAM=832,256 CLUT=0,7 " +
+                Console.WriteLine($"[MapV2] LIVE_BITMAP FLAGS=8006bb74 VRAM=832,256 CLUT=0,7 " +
                     $"inverted={inverted} explored={frame.Explored} known={frame.Known} " +
-                    $"playerCell={playerX},{playerY} marker={frame.PlayerPixelX},{frame.PlayerPixelY}");
+                    $"playerCell={playerX},{playerY} marker={frame.PlayerPixelX},{frame.PlayerPixelY} " +
+                    $"cellState={CastleMapFrame.StateAt(_flags,playerX,playerY,inverted)} liveWords={_map.Count(v=>v!=0)} palette={string.Join(",", _palette.Select(v=>v.ToString("x4")))}");
                 _reportedCastle = inverted;
             }
         }
@@ -182,8 +182,8 @@ public sealed class CastleMapView : View
             Text(canvas, "Load a save or enter a stage on the upper screen.", 180, 457, 23, Muted);
             Text(canvas, "Map, status and journal follow the live game.", 202, 495, 22, Muted);
         }
-        else if (_page == 0) DrawMap(canvas, frame.Map);
-        else if (_page == 1) DrawStatus(canvas, frame.Status);
+        else if (_page == 0) DrawStatus(canvas, frame.Status);
+        else if (_page == 1) DrawMap(canvas, frame.Map);
         else DrawJournal(canvas, frame);
         Text(canvas, "Touch a card to switch pages", 70, 794, 20, Muted);
         Text(canvas, "AYN THOR", 812, 794, 18, Gold, true);
@@ -192,6 +192,8 @@ public sealed class CastleMapView : View
 
     void DrawMap(Canvas canvas, CastleMapFrame frame)
     {
+        if (_needsMapFocus && frame.PlayerPixelX >= 0)
+        { _viewport.FocusPlayer(frame.PlayerPixelX,frame.PlayerPixelY); _needsMapFocus = false; }
         _bitmap ??= Bitmap.CreateBitmap(256, 256, Bitmap.Config.Argb8888!)!;
         if (!ReferenceEquals(frame, _drawn))
         {
@@ -203,8 +205,9 @@ public sealed class CastleMapView : View
         if (physicalScale < 1) physicalScale = 448 * _uiScale / 256;
         float scale = physicalScale / _uiScale * _viewport.Zoom;
         _mapScale = scale;
-        float left = MathF.Round(_uiLeft + (500 - _viewport.CenterX * scale) * _uiScale) / _uiScale - _uiLeft / _uiScale;
-        float top = MathF.Round(_uiTop + (485 - _viewport.CenterY * scale) * _uiScale) / _uiScale - _uiTop / _uiScale;
+        var origin = _viewport.Project(0,0,scale);
+        float left = MathF.Round(_uiLeft + origin.X * _uiScale) / _uiScale - _uiLeft / _uiScale;
+        float top = MathF.Round(_uiTop + origin.Y * _uiScale) / _uiScale - _uiTop / _uiScale;
         canvas.Save(); canvas.ClipRect(66, 260, 934, 710);
         canvas.DrawColor(Color.Black);
         canvas.DrawBitmap(_bitmap, null, new RectF(left, top, left + 256 * scale, top + 256 * scale), _bitmapPaint);
@@ -224,7 +227,7 @@ public sealed class CastleMapView : View
         }
         Text(canvas, $"{_viewport.Zoom:0.#}x", 564, 236, 20, Muted);
         Text(canvas, frame.Inverted ? "INVERTED CASTLE" : "CASTLE", 66, 230, 16, Gold);
-        Text(canvas, $"{frame.Explored} explored / {frame.Known} known", 66, 736, 18, Muted);
+        Text(canvas, $"{frame.Explored} explored / {frame.Known} charted-only", 66, 736, 18, Muted);
         Text(canvas, "Drag / pinch / +/- to zoom. FIT resets.", 520, 736, 17, Muted);
     }
 
@@ -299,8 +302,8 @@ public sealed class CastleMapView : View
         if (e.ActionMasked == MotionEventActions.Down)
         {
             _touchTab = TabAt(e.GetX(), e.GetY());
-            _mapControl = _page == 0 ? MapControlAt(x,y) : -1;
-            _mapDrag = _page == 0 && x >= 66 && x <= 934 && y >= 260 && y <= 710;
+            _mapControl = _page == 1 ? MapControlAt(x,y) : -1;
+            _mapDrag = _page == 1 && x >= 66 && x <= 934 && y >= 260 && y <= 710;
             _dragX = x; _dragY = y; _pinchSpan = 0;
         }
         else if (_mapDrag && e.PointerCount >= 2)
@@ -321,10 +324,12 @@ public sealed class CastleMapView : View
             int tab = TabAt(e.GetX(), e.GetY());
             if (tab >= 0 && tab == _touchTab)
             {
-                _page = tab; Console.WriteLine($"[CastleGear] PAGE {Tabs[tab]}");
+                _page = tab;
+                if (tab == 1) _needsMapFocus = true;
+                Console.WriteLine($"[CastleGear] PAGE {Tabs[tab]}");
                 Invalidate(); PerformClick();
             }
-            else if (_page == 0 && _mapControl >= 0 && MapControlAt(x,y) == _mapControl)
+            else if (_page == 1 && _mapControl >= 0 && MapControlAt(x,y) == _mapControl)
             {
                 if (_mapControl == 1) _viewport.Reset();
                 else _viewport.ScaleBy(_mapControl == 0 ? .5f : 2f);

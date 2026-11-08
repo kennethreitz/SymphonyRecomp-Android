@@ -2,9 +2,15 @@ namespace SymphonyRecomp.Android.SecondScreen;
 
 public sealed class MapViewport
 {
-    public float Zoom { get; private set; } = 1;
+    public float Zoom { get; private set; } = 4;
     public float CenterX { get; private set; } = 128;
     public float CenterY { get; private set; } = 128;
+    public void FocusPlayer(int x, int y)
+    {
+        Zoom = 4; CenterX = x >= 0 ? x : 128; CenterY = y >= 0 ? y : 128; Clamp();
+    }
+    public (float X, float Y) Project(float x, float y, float scale)
+        => (500 + (x-CenterX)*scale, 485 + (y-CenterY)*scale);
     public void Reset() { Zoom = 1; CenterX = CenterY = 128; }
     public void ScaleBy(float factor)
     {
@@ -18,8 +24,8 @@ public sealed class MapViewport
     }
     void Clamp()
     {
-        float edge = 128 / Zoom;
-        CenterX = Math.Clamp(CenterX, edge, 256-edge);
-        CenterY = Math.Clamp(CenterY, edge, 256-edge);
+        if (Zoom == 1) { CenterX = CenterY = 128; return; }
+        CenterX = Math.Clamp(CenterX, 0, 256);
+        CenterY = Math.Clamp(CenterY, 0, 256);
     }
 }
