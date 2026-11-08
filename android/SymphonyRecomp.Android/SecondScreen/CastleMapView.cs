@@ -3,6 +3,8 @@ using Android.Content;
 using Android.Graphics;
 using Android.Views;
 using RecompOne.Runtime.Events;
+using RecompOne.Runtime.Host;
+using RecompOne.Runtime.Hle;
 using GameRuntime = RecompOne.Runtime.Runtime;
 
 namespace SymphonyRecomp.Android.SecondScreen;
@@ -29,6 +31,11 @@ public sealed class CastleMapView : View
     long _lastCapture;
     bool _subscribed, _reportedError;
     bool? _reportedCastle;
+    readonly MapViewport _viewport = new();
+    float _dragX, _dragY, _pinchSpan;
+    bool _mapDrag;
+    int _mapControl = -1;
+    float _mapScale;
 
     public CastleMapView(Context context) : base(context) => SetBackgroundColor(Color.Black);
 
@@ -71,11 +78,25 @@ public sealed class CastleMapView : View
                 _blueprint[i] = mem.ReadU8(CastleMapFrame.BlueprintAddress + (uint)i);
             for (int i = 0; i < _flags.Length; i++)
                 _flags[i] = mem.ReadU8(CastleMapFrame.FlagsAddress + (uint)i);
-            for (int y = 0; y < CastleMapFrame.Size; y++)
-                Array.Copy(vram, (CastleMapFrame.VramY + y) * 1024 + CastleMapFrame.VramX,
-                    _map, y * CastleMapFrame.VramRowWords, CastleMapFrame.VramRowWords);
-            Array.Copy(vram, CastleMapFrame.PaletteY * 1024 + CastleMapFrame.PaletteX,
-                _palette, 0, _palette.Length);
+            // HLE rendering owns the authoritative VRAM texture. The CPU shadow
+            // is stale until StoreImage reads it back; use the supported GPU queue.
+            GpuJobs.Run(() =>
+            {
+                var backend = GpuHle.Backend;
+                if (GpuHle.Active && backend != null)
+                {
+                    backend.ReadVram(CastleMapFrame.VramX, CastleMapFrame.VramY,
+                        CastleMapFrame.VramRowWords, CastleMapFrame.Size, _map);
+                    backend.ReadVram(CastleMapFrame.PaletteX, CastleMapFrame.PaletteY, 16, 1, _palette);
+                }
+                else
+                {
+                    for (int y = 0; y < CastleMapFrame.Size; y++)
+                        Array.Copy(vram, (CastleMapFrame.VramY + y) * 1024 + CastleMapFrame.VramX,
+                            _map, y * CastleMapFrame.VramRowWords, CastleMapFrame.VramRowWords);
+                    Array.Copy(vram, CastleMapFrame.PaletteY * 1024, _palette, 0, 16);
+                }
+            });
             int playerX = (int)mem.ReadU32(0x800730B0) + ((int)mem.ReadU32(0x800973F0) >> 8);
             int playerY = (int)mem.ReadU32(0x800730B4) + ((int)mem.ReadU32(0x800973F4) >> 8);
             var frame = CastleMapFrame.Decode(_blueprint, _flags, _map, _palette,
@@ -178,11 +199,14 @@ public sealed class CastleMapView : View
             _drawn = frame;
         }
         // Physical integer scaling, with the same pixel-space transform for marker.
-        float physicalScale = MathF.Floor(512 * _uiScale / 256);
-        if (physicalScale < 1) physicalScale = 512 * _uiScale / 256;
-        float scale = physicalScale / _uiScale;
-        float left = MathF.Round((_uiLeft + (500 - 128 * scale) * _uiScale)) / _uiScale - _uiLeft / _uiScale;
-        float top = MathF.Round((_uiTop + (480 - 128 * scale) * _uiScale)) / _uiScale - _uiTop / _uiScale;
+        float physicalScale = MathF.Floor(448 * _uiScale / 256);
+        if (physicalScale < 1) physicalScale = 448 * _uiScale / 256;
+        float scale = physicalScale / _uiScale * _viewport.Zoom;
+        _mapScale = scale;
+        float left = MathF.Round(_uiLeft + (500 - _viewport.CenterX * scale) * _uiScale) / _uiScale - _uiLeft / _uiScale;
+        float top = MathF.Round(_uiTop + (485 - _viewport.CenterY * scale) * _uiScale) / _uiScale - _uiTop / _uiScale;
+        canvas.Save(); canvas.ClipRect(66, 260, 934, 710);
+        canvas.DrawColor(Color.Black);
         canvas.DrawBitmap(_bitmap, null, new RectF(left, top, left + 256 * scale, top + 256 * scale), _bitmapPaint);
         if (frame.PlayerPixelX >= 0)
         {
@@ -190,9 +214,18 @@ public sealed class CastleMapView : View
             float y = top + (frame.PlayerPixelY + .5f) * scale;
             canvas.DrawRect(x - scale, y - scale, x + scale, y + scale, _markerPaint);
         }
+        canvas.Restore();
+        string[] controls = ["-", "FIT", "+"];
+        for (int i = 0; i < 3; i++)
+        {
+            float x = 676 + i * 88;
+            Panel(canvas, x, 208, x + 78, 250, Ink, Gold);
+            Text(canvas, controls[i], x + (i == 1 ? 18 : 30), 237, 22, Gold, true);
+        }
+        Text(canvas, $"{_viewport.Zoom:0.#}x", 564, 236, 20, Muted);
         Text(canvas, frame.Inverted ? "INVERTED CASTLE" : "CASTLE", 66, 230, 16, Gold);
         Text(canvas, $"{frame.Explored} explored / {frame.Known} known", 66, 736, 18, Muted);
-        Text(canvas, "Blue: explored   Gray: blueprint   Gold: you", 520, 736, 17, Muted);
+        Text(canvas, "Drag / pinch / +/- to zoom. FIT resets.", 520, 736, 17, Muted);
     }
 
     void Meter(Canvas c, string label, int value, int max, float y, Color color)
@@ -252,23 +285,57 @@ public sealed class CastleMapView : View
         return -1;
     }
 
+    int MapControlAt(float x, float y)
+    {
+        if (y < 208 || y > 250) return -1;
+        for (int i = 0; i < 3; i++) if (x >= 676 + i * 88 && x <= 754 + i * 88) return i;
+        return -1;
+    }
+
     public override bool OnTouchEvent(MotionEvent? e)
     {
         if (e == null) return false;
-        if (e.ActionMasked == MotionEventActions.Down) _touchTab = TabAt(e.GetX(), e.GetY());
+        float x = (e.GetX() - _uiLeft) / _uiScale, y = (e.GetY() - _uiTop) / _uiScale;
+        if (e.ActionMasked == MotionEventActions.Down)
+        {
+            _touchTab = TabAt(e.GetX(), e.GetY());
+            _mapControl = _page == 0 ? MapControlAt(x,y) : -1;
+            _mapDrag = _page == 0 && x >= 66 && x <= 934 && y >= 260 && y <= 710;
+            _dragX = x; _dragY = y; _pinchSpan = 0;
+        }
+        else if (_mapDrag && e.PointerCount >= 2)
+        {
+            float dx = e.GetX(0)-e.GetX(1), dy = e.GetY(0)-e.GetY(1);
+            float span = MathF.Sqrt(dx*dx+dy*dy);
+            if (_pinchSpan > 0 && span > 0) _viewport.ScaleBy(span/_pinchSpan);
+            _pinchSpan = span; Invalidate();
+        }
+        else if (e.ActionMasked == MotionEventActions.Move && _mapDrag)
+        {
+            if (_pinchSpan > 0) { _pinchSpan = 0; _dragX=x; _dragY=y; }
+            else if (_mapScale > 0) _viewport.PanBy(-(x-_dragX)/_mapScale, -(y-_dragY)/_mapScale);
+            _dragX=x; _dragY=y; Invalidate();
+        }
         else if (e.ActionMasked == MotionEventActions.Up)
         {
             int tab = TabAt(e.GetX(), e.GetY());
             if (tab >= 0 && tab == _touchTab)
             {
-                _page = tab;
-                Console.WriteLine($"[CastleGear] PAGE {Tabs[tab]}");
+                _page = tab; Console.WriteLine($"[CastleGear] PAGE {Tabs[tab]}");
                 Invalidate(); PerformClick();
             }
-            _touchTab = -1;
+            else if (_page == 0 && _mapControl >= 0 && MapControlAt(x,y) == _mapControl)
+            {
+                if (_mapControl == 1) _viewport.Reset();
+                else _viewport.ScaleBy(_mapControl == 0 ? .5f : 2f);
+                Console.WriteLine($"[CastleGear] MAP_ZOOM {_viewport.Zoom}x center={_viewport.CenterX},{_viewport.CenterY}");
+                Invalidate(); PerformClick();
+            }
+            _touchTab = _mapControl = -1; _mapDrag = false; _pinchSpan = 0;
         }
-        else if (e.ActionMasked == MotionEventActions.Cancel) _touchTab = -1;
-        return true; // Never forward companion touches as gameplay input.
+        else if (e.ActionMasked == MotionEventActions.Cancel)
+        { _touchTab = _mapControl = -1; _mapDrag = false; _pinchSpan = 0; }
+        return true;
     }
 
     public override bool PerformClick() { base.PerformClick(); return true; }
