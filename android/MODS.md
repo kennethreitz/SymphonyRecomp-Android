@@ -243,3 +243,158 @@ The Thor routes a default HOME key to the focused secondary display. Use
 `adb shell input -d 0 keyevent HOME` for the primary game display. This device
 may show the Android launcher chooser because its primary default Home is unset;
 no default or other-app settings were changed.
+
+
+## Castle Gear provider API v1
+
+`SymphonyRecomp.Android.SecondScreen.GearProviders` is a small public, generic,
+push-only API in the Android app assembly. Source mods already receive that
+assembly's metadata from the normal Roslyn loader. No Android UI types, native
+hooks, or detours are needed. `ApiVersion` is currently `1`.
+
+```csharp
+using SymphonyRecomp.Android.SecondScreen;
+GearProviders.Registration provider = GearProviders.Register("my-mod");
+provider.Publish(new GearCard("MY CARD", new[] {
+    new GearField("Named field", "Current value"),
+    new GearField("Another field", "42")
+}));
+// Publish replaces all this provider's cards atomically; Publish() clears them.
+// In IMod.OnUnload, remove your event listeners and dispose your registration.
+provider.Dispose();
+```
+
+Collect data on the game thread, for example from `VSyncEvent`, and publish
+strings at a modest rate. Never read mutable game memory from a UI callback.
+The app copies collections and strings on publication; snapshots are read-only.
+No provider callbacks execute during drawing. Disposing removes the provider's
+cards and rejects further publication. IDs are case-insensitively unique.
+Registration is bounded to 16 providers, each publication to 8 cards, each card to
+64 fields. Titles, field names, and values are limited to 48/40/96 characters;
+control characters are stripped. The MODS tab displays nine rows per card page,
+with PREVIOUS/NEXT buttons. Long rows are ellipsized, not drawn over neighbors.
+Empty providers are hidden; card order is provider ID followed by publish order.
+UI state is not a new footer: navigation stays inside the content panel.
+
+### CastleGearPlus source mod
+
+`android/mods/CastleGearPlus/` contains only source and a manifest. It subscribes
+to existing `VSyncEvent`, `PlayerLoadedEvent`, and `SaveCreatedEvent`, and publishes
+four named cards through the same public API. It never writes game memory,
+loads or saves a game, installs detours, or accesses memory-card files.
+
+Enable it explicitly (default is disabled) in the device's existing
+`files/mods/mod-settings.json`, preserving all other entries:
+
+```json
+{ "enabled": true, "mods": { "castle-gear-plus": true } }
+```
+
+The APK bundles this small source mod and seeds missing files using the app's
+own `GetExternalFilesDir`-based storage on startup. Existing source files and
+mod settings are never overwritten by the seeder. This avoids depending on adb
+creating new directories inside scoped Android/data storage. Android documents
+this supported app-owned storage at
+https://developer.android.com/training/data-storage/app-specific.
+
+Alternatively deploy the folder to
+`/sdcard/Android/data/com.blacklabelhq.symphonyrecomp/files/mods/`. Install a
+matching-signer build in place with `adb install -r` when approved, and launch
+the app. Do not uninstall or clear data. Log proof is
+`[CastleGearPlus] SOURCE_LOADED API=1 EVENTS_ONLY NO_DETOURS`, followed by a
+`[CastleGearPlus] LIVE ...` line once the owner enters gameplay. Open MODS on
+Castle Gear. No generated or extracted game artwork/data is part of this mod.
+
+Reliable fields and precise meanings:
+
+- Map completion uses the native US save-selector equation, integer tenths:
+  `floor(rooms * 1000 / 942) / 10`, displayed with one decimal. It is not clamped
+  at 100%; both castles can reach 200.6%. Rooms use native `g_RoomCount`.
+- Native total kills are `g_Status.killCount`. Session kills are observed
+  positive increments, not a count of enemy sprites disappearing. A saturated
+  native kill counter cannot expose further increments.
+- Observed HP loss is the sum of downward HP deltas between consecutive active
+  native play-clock frames in the same room/area with unchanged maximum HP.
+  It includes environmental/poison loss, excludes healing, and is NOT raw damage
+  taken, attacker attribution, damage dealt, or DPS. The last observed HP loss is
+  also shown. Skipped frames, menus, stage transitions, loads and new-player
+  events break comparison baselines; simultaneous healing can hide loss.
+- Game overs are observed transitions into the native Game_GameOver state after
+  live castle gameplay, counted once, not inferred from low HP.
+- Save snapshots count existing `SaveCreatedEvent` notifications after
+  `StoreSaveData_dra`. This proves native snapshot serialization, NOT successful
+  memory-card/disk completion. The mod itself never triggers a save.
+- Relic checklist uses the FOUND bit, not the ACTIVE bit. The US game has 28
+  obtainable relics; JP-only slots 23 and 24 are excluded. New relic types this
+  session count newly observed FOUND transitions; loading a save cannot count as
+  collecting relics.
+- Location shows the existing stage name/ID and the room's tilemap origin, not
+  an invented globally unique room ID. Per-area/session time counts consecutive
+  active native play-clock frames at 60 Hz, excluding pauses, loading, movies,
+  title screens and the Richter prologue. Time accumulated before a mod/app
+  restart is not persisted. The current card freezes its last snapshot while
+  gameplay is unavailable.
+
+A session is this mod instance's lifetime. Loading another save breaks baselines
+but retains accumulated session totals; restarting the app resets them. Publish
+runs once per second; sampling runs on VSync with native-clock deduplication.
+
+Intentionally omitted: ordinary item pickups (inventory gains can also be
+purchases, equipment changes or scripts), bestiary/encounter counts, damage
+attributed to the player, DPS, attacker/last-hit identity and confirmed successful
+saves. The current event surface does not identify these reliably. A zero
+session counter is not proof that its increment path was exercised on device.
+
+Memory-layout facts and native percentage equation were checked against:
+- https://github.com/Xeeynamo/sotn-decomp/blob/master/include/game.h
+- https://github.com/Xeeynamo/sotn-decomp/blob/master/src/st/sel/select.c
+  (`percHi = (percHi * 1000) / 942`, both selector presentations).
+- The port's existing `events/GameLifecycleEvents.cs` and generated US call
+  instrumentation for `StoreSaveData_dra` / `ApplySaveData_dra`.
+
+No implementation from those decompilation sources was copied into this mod.
+ROM-free coverage in `CastleGearSmoke` exercises the provider copy/bounds/unload
+contract, native layout sampling, percentage rounding, relic availability,
+active-time attribution, counter deltas, pause/load/room/max-HP exclusions and
+single game-over/save-snapshot counting. Device proof should validate source
+compilation, event dispatch, live values and card paging without causing a
+player death or writing any save slot.
+
+
+### Thor validation, November 8, 2026
+
+- 112 ROM-free checks passed, including bundled source preservation.
+- Matching certificate `e35962d0b9609c198ec27b54a84e8e8d8cf8cde215c680ac267477051f259753`;
+  in-place installation succeeded at 2:07 PM EST. No data was cleared.
+- Fresh process 32755 compiled the source mod on device, registered the API,
+  and logged one loaded mod with zero registered hooks and zero hooked functions.
+- First live sample: 57 rooms, 6.0%, 86 native kills. During the owner's gameplay
+  the cards updated to 61 rooms, 6.4%, 87 kills and 1 observed session kill.
+  Percentages were checked against the native selector equation, not by opening
+  or modifying a save. The user's gameplay, not automation, provided these gains.
+- Location showed Alchemy Laboratory, area 0x0C, room origin 9,27. Active area
+  time visibly advanced from 00:00:47 to 00:00:48. The 28-relic checklist showed
+  Cube of Zoe HAVE and other available relics MISSING, and all seven card pages
+  were navigable without affecting the primary game display.
+- HP loss, game-over, save-snapshot and new-relic increment paths are covered
+  with synthetic events/samples. No death, save write or pickup was induced by
+  automation solely to exercise them on the device.
+- Proof images on the development Mac, `~/repos/sotn-android/screens/`:
+  `castle-gear-plus-summary.png`, `castle-gear-plus-location.png`,
+  `castle-gear-plus-relics-have.png`, `castle-gear-plus-relics-missing.png`,
+  `castle-gear-plus-areas.png`, and `castle-gear-plus-game.png`.
+- Direct adb folder creation initially failed under scoped storage. Source now
+  deploys through app-owned storage as documented above; no root, permission
+  escalation or additional storage permission is used. The existing settings
+  file was updated normally, preserving the disabled smoke and Blackout mods.
+
+Run the complete ROM-free companion checks from the checkout root:
+
+```sh
+dotnet run --project android/tests/CastleGearSmoke -c Release
+```
+
+Repeated VSync notifications within one native clock frame retain the original
+comparison baseline. Title/demo transitions cannot count as player game overs.
+Bundled source is intentionally seed-only: deploy an updated source file normally
+into the existing mod folder when iterating; user source is never silently replaced.

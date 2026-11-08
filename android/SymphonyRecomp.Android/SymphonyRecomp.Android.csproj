@@ -74,4 +74,9 @@
     <Compile Remove="../../patches/translation/TranslationSettings.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="../mods/CastleGearPlus/*.cs;../mods/CastleGearPlus/mod.json">
+      <LogicalName>BundledMods.CastleGearPlus.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>
