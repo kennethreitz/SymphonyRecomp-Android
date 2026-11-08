@@ -78,5 +78,8 @@
     <EmbeddedResource Include="../mods/CastleGearPlus/*.cs;../mods/CastleGearPlus/mod.json">
       <LogicalName>BundledMods.CastleGearPlus.%(Filename)%(Extension)</LogicalName>
     </EmbeddedResource>
+    <EmbeddedResource Include="../mods/SkipPrologue/*.cs;../mods/SkipPrologue/mod.json">
+      <LogicalName>BundledMods.SkipPrologue.%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

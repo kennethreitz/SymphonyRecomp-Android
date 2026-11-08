@@ -190,4 +190,41 @@ float firstBaseline=GearLayout.EmptyFirstBaseline(-30,7);
 Check((firstBaseline-30+firstBaseline+86+7)/2==GearLayout.Card.CenterY,"three-line empty block is vertically centered by actual first/last glyph bounds");
 Check(GearLayout.InkOrigin(GearLayout.Card.CenterX,-1,349)+(-1+349)/2f==500,"empty-state lines center independently on the complete card, not a status column");
 
+var skip=new SkipPrologueData.SkipPolicy();
+var naming=new SkipPrologueData.SkipSample(8,6,0x11,1,0x45,0,0);
+var confirmed=naming with {Engine=0x12,FreshFlag=0,Stage=0x1f};
+Check(skip.Observe(confirmed)==SkipPrologueData.SkipAction.None,"skip cannot arm by seeing a stage id or a fresh flag alone");
+Check(skip.Observe(naming)==SkipPrologueData.SkipAction.None && skip.Phase==SkipPrologueData.SkipPhase.NameEntry,"new-game name entry arms policy without any game writes");
+Check(skip.Observe(confirmed)==SkipPrologueData.SkipAction.RouteEntrance,"only confirmed fresh Alucard name-entry flow routes to entrance");
+var loading=confirmed with {Stage=0x41,State=5,Step=0};
+Check(skip.Observe(loading)==SkipPrologueData.SkipAction.SkipOpening,"fresh-game opening uses one native skip transition");
+loading=loading with {State=4,Step=10};
+Check(skip.Observe(loading)==SkipPrologueData.SkipAction.SeedOutcome,"outcome seeded immediately before native stats initialization");
+Check(skip.Observe(loading)==SkipPrologueData.SkipAction.None,"duplicate VSync cannot seed the profile twice");
+Check(skip.Observe(loading with {State=2,Step=0})==SkipPrologueData.SkipAction.None,"castle flags are not set before native fresh-game reset");
+Check(skip.Observe(loading with {State=2,Step=1})==SkipPrologueData.SkipAction.EntranceSpawn,"entrance spawn is selected after reset and before room initialization");
+Check(skip.Observe(loading with {State=2,Step=3,Engine=1})==SkipPrologueData.SkipAction.Finished,"completed mod stops modifying the running game");
+Check(skip.Observe(loading with {State=2,Step=1})==SkipPrologueData.SkipAction.None,"completion prevents repeated room/flag modifications");
+foreach(var unsafeConfirm in new[] { confirmed with {FreshFlag=1},confirmed with {Character=1},confirmed with {Character=2},confirmed with {Demo=1},confirmed with {Stage=0x41} })
+{
+    skip.Cancel();skip.Observe(naming);
+    Check(skip.Observe(unsafeConfirm)==SkipPrologueData.SkipAction.None && skip.Phase==SkipPrologueData.SkipPhase.Idle,"saved/alternate-character/demo/custom starts fail closed");
+}
+skip.Cancel();skip.Observe(naming);skip.Observe(naming with {Engine=0x30});
+Check(skip.Observe(confirmed)==SkipPrologueData.SkipAction.None,"cancelling name entry cancels the fresh-game fence");
+skip.Cancel();skip.Observe(naming);skip.Observe(confirmed);skip.Cancel();
+Check(skip.Observe(loading)==SkipPrologueData.SkipAction.None,"save-loaded cancellation forbids all subsequent skip writes");
+skip.Cancel();skip.Observe(naming);skip.Observe(confirmed);skip.Observe(loading with {State=5,Step=0});skip.Observe(loading);
+Check(skip.Observe(loading with {State=2,Step=1,FreshFlag=1})==SkipPrologueData.SkipAction.None && skip.Phase==SkipPrologueData.SkipPhase.Idle,"loaded-save fresh flag fails closed even without a lifecycle event");
+foreach(var unarmed in new[] {loading with {State=2,Step=3,Engine=1},loading with {State=4,Step=10},confirmed with {Engine=0x18}})
+{
+    skip.Cancel();Check(skip.Observe(unarmed)==SkipPrologueData.SkipAction.None,"enabling during play/loading or unrelated menu state cannot modify game RAM");
+}
+var seedWords=new Dictionary<uint,uint>();SkipPrologueData.SkipPolicy.SeedOutcome((a,v)=>seedWords[a]=v);
+Check(seedWords[0x80097BA0]==50 && seedWords[0x80097BA4]==50 && seedWords[0x80097BFC]==4 && seedWords[0x80139008]==30 && seedWords[0x801397FC]==0,"profile supplies full-HP unassisted Richter/Cross inputs, not final Alucard stats");
+Check(!seedWords.ContainsKey(0x80097BB8) && !seedWords.ContainsKey(0x80097BB4) && !seedWords.ContainsKey(0x80097C00),"stats, MP and starting equipment are left to native InitStatsAndGear");
+Check(Enumerable.Range(0,32).All(n=>seedWords[0x8003CA28+(uint)n*4]==0) && seedWords[0x8003CB00]==0 && seedWords[0x8003CB04]==0,"fresh outcome resets time-attack records/visited flags so prior saves cannot suppress bosses");
+Check(seedWords[0x80097C38]==1 && seedWords.Keys.All(a=>a>=0x80000000 && a<0x80200000),"synthetic completion uses native one-second clock input and only game RAM");
+Check(File.Exists(Path.Combine(seeded,"SkipPrologue","SkipPolicy.cs")),"fresh-game source mod is bundled and seeded without changing settings");
+
 Console.WriteLine($"Castle Gear: {checks} ROM-free checks passed");
