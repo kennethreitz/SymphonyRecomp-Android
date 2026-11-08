@@ -28,6 +28,36 @@ public static partial class WidescreenPatch
     public static bool TransparentWaterWide_no3Hook(CpuContext c, IMemory m) => Wide(TransparentWaterWide_no3, c, m);
     public static bool TransparentWaterWide_np3Hook(CpuContext c, IMemory m) => Wide(TransparentWaterWide_np3, c, m);
     public static bool WaterSurface801C12B0Wide_no4Hook(CpuContext c, IMemory m) => Wide(WaterSurface801C12B0Wide_no4, c, m);
+   //not really necessary for water shit but anyways just to be safe
+    public static bool WaterSurface801C4DD0Wide_rno4Hook(CpuContext c, IMemory m) => Wide(WaterSurface801C4DD0Wide_rno4, c, m);
+    public static bool WaterBody801C15F8Wide_no4Hook(CpuContext c, IMemory m) => Wide(WaterBody801C15F8Wide_no4, c, m);
+    public static bool WaterBody801C5118Wide_rno4Hook(CpuContext c, IMemory m) => Wide(WaterBody801C5118Wide_rno4, c, m);
+    public static bool WaterSurface8019D1D4Wide_bo3Hook(CpuContext c, IMemory m) => Wide(WaterSurface8019D1D4Wide_bo3, c, m);
+    public static bool WaterBody8019D51CWide_bo3Hook(CpuContext c, IMemory m) => Wide(WaterBody8019D51CWide_bo3, c, m);
     public static bool LavaGlowWide_catHook(CpuContext c, IMemory m) => Wide(LavaGlowWide_cat, c, m);
     public static bool CamColWide(CpuContext c, IMemory m) => Wide(CamCol, c, m);
+
+    static bool WideExt(System.Action<CpuContext, IMemory> impl, CpuContext c, IMemory m, params string[] needs)
+    {
+        if (!Extended || !StageHas(m, needs)) return true;
+        impl(c, m);
+        return false;
+    }
+
+    public static bool UpdateWide(CpuContext c, IMemory m)
+    {
+        if (!Extended || !StageHas(m, "DestroyEntity")) return true;
+        if (!StageUpdateSymbols(m, out _, out _)) return true;
+        Update(c, m);
+        return false;
+    }
+
+    public static bool UpdateRoomPositionWide(CpuContext c, IMemory m) => WideExt(UpdateRoomPosition, c, m,"CreateEntitiesToTheRight", "CreateEntitiesToTheLeft", "CreateEntitiesAbove", "CreateEntitiesBelow"); //ima a long line :3
+    public static bool CreateEntityWhenInHorizontalRangeWide(CpuContext c, IMemory m) => WideExt(CreateEntityWhenInHorizontalRange, c, m, "CreateEntityFromLayout");
+    public static bool CreateEntityWhenInVerticalRangeWide(CpuContext c, IMemory m) => WideExt(CreateEntityWhenInVerticalRange, c, m, "CreateEntityFromLayout");
+   
+    //st0 has a different hit detection method, for simplicity im just going to skip the patch on it, since the dracula batle occurs in a 4:3 field this wouldnt cause any problems i would believe
+    static bool IsSt0(IMemory m) => StageOverlay(m) is { } ov && string.Equals(ov.Name, "st0", StringComparison.OrdinalIgnoreCase);
+
+    public static bool HitDetectionWide(CpuContext c, IMemory m) => IsSt0(m) || WideExt(HitDetection, c, m, "AllocEntity", "CreateEntityFromEntity", "DestroyEntity", "PreventEntityFromRespawning", "BottomCornerText");
 }

@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>$(NoWarn);CS0162;CS0219;CS0649;CS0414</NoWarn>
     <DefineConstants>$(DefineConstants);ANDROID;NO_MODS</DefineConstants>
 
     <ApplicationId>com.blacklabelhq.symphonyrecomp</ApplicationId>
@@ -30,6 +31,9 @@
   <!-- Castle map art for the second screen. Explicit LogicalName because the
        default would be derived from the ../../ path. -->
   <ItemGroup>
+    <EmbeddedResource Include="../../assets/extension/*.png" />
+    <EmbeddedResource Include="../../assets/extension/room_fills.json" />
+    <EmbeddedResource Include="../../assets/languages.json" />
     <EmbeddedResource Include="../../assets/map/Castle1.png" LogicalName="map.Castle1.png" />
     <EmbeddedResource Include="../../assets/map/Castle2.png" LogicalName="map.Castle2.png" />
   </ItemGroup>
@@ -44,6 +48,7 @@
     <Compile Include="../../generated/**/*.cs" />
     <Compile Include="../../wrapers/**/*.cs" />
     <Compile Include="../../events/**/*.cs" />
+    <Compile Include="../../misc/RgbaImage.cs" />
     <!-- All patches, not just widescreen: the recompiler bakes calls to
          Recompiled.RandoPatch, QualityOfLife, MovementCheat and FunctionFixes
          straight into the generated code, so the patch logic is not optional. -->
@@ -62,10 +67,10 @@
     <Compile Remove="../../patches/rando/RandoMenu.cs" />
     <Compile Remove="../../patches/rando/RandoPanel.cs" />
     <Compile Remove="../../patches/tracker/TrackerMenu.cs" />
-    <Compile Remove="../../patches/tracker/TrackerIcons.cs" />
     <Compile Remove="../../patches/tracker/TrackerOverlayPanel.cs" />
     <Compile Remove="../../patches/tracker/MapOverlayPanel.cs" />
     <Compile Remove="../../patches/widescreen/WidescreenSettingsSection.cs" />
+    <Compile Remove="../../patches/translation/TranslationSettings.cs" />
   </ItemGroup>
 
 </Project>

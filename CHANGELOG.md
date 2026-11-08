@@ -1,52 +1,39 @@
-# 
+# pre-release 1.1.2 (this is a pre-release for 1.0.0)
+this is a pre-release, it has a lot of new stuff and wasnt tested as much as a full release, so expect some bugs, please report anything you find!
 
-IF YOU ARE RUNNING 0.3b OR EARLIER YOU NEED TO MANUALLY DOWNLOAD THIS UPDATE FROM THE RELEASE PAGE!!! THE AUTO-UPDATER WILL NOT WORK PROPERLY
+heads up: the settings system was rewritten, so your settings from previous versions are reset to the defaults
 
 # Changes
+- added language packs (put them in the translations folder)
+- added a game text language option, separate from the interface language
+- added room extension (settings > display), fills the area outside the room on widescreen with custom fills, a color fill, or tun off
+- added room fills for most rooms of the castle, some still need revision tho
+- added support for slang/libretro shader presets through ShaderMod
+- added the Asset Pack manager and an in-game Asset Pack Editor to create and edit packs
+- texture replacement now works properly on alucard, enemies, items, hud and tilesets with a custom provider (games sends this data weirdly by default)
+- added true 24bit color option
+- added option to control the display of the dithering
+- added autohide for top bar
+- added autohide mouse after 5 seconds
+- added a crash popup that shows where the crash log was saved
+- added skip prologue to the QoL options
+- disabling letterbox now zooms the image to cover the bars instead of removing the bars
+- fixed water in the underground caverns, reverse caverns, castle entrance and scylla fight in widescreen
+- fixed lava glow in the catacombs in widescreen
+- fixed trees and foliage in the castle entrance intro in widescreen
+- fixed the castle destruction effect in the prologue in widescreen
+- fixed static backgrounds ending at the 4:3 border in some rooms
+- fixed characters disappearing early near the screen edges, they now fade
+- richter's hud now follows the widescreen margin correctly
+- fixed the game over screen melting effect being corrupted without letterbox, the game over image being stretched and the title screen corrupting after it
+- fixed richter not being able to slide near the screen edges in widescreen
+- fixed richter's whip, subweapons and effects disappearing near the screen edges in widescreen
+- fixed richter's cross, rebound stone and agunea disappearing before leaving the screen
+- fixed a one frame jump on horizontal room transitions
+- improved stability overhaul
+- improved other widescreen effects
 
-- fixes an issue with the mod's hooking system, mods should work correctly now
-- fixed inverted castle having problems with the widescreen patches and transition patches
-- reduced minimum opengl requirement to 3.3 (4.5 will still be used when available, it will be eventually droped if gl3.3 is stable enough)
-- added vsync option
-- fixes RSL bug being accidentaly patched (oops) game nows uses original behaviour when using original aspect ratio
-- fixed alucard's rendering overlays having an incorrect offset
-- added an patch to extend the view on st0(dracula fight as richter) using the tiles from TOP(catle top as alucard), its just an image not an new tileset
-- added shader mod (crt-geom included, you can put custom shaders, feel fre to open a pr to include other shaders!)
-- reworked Recompone's rendering backend
-- some of the screen fades and flashes now display correctly to your selected aspect ratio
-- added linux arm64 build
-
-## 0.4.1b
-- fixed some overlay functions duplicate not being properly named causing issues with the widescreen patches not having all necessary functions on inverted castle (wich was suposed to be fixed in 0.4b) this issue is now fixed
-
-## 0.4.2b
-- fixed colission problems on some bosses
-- added an script to run it on imutable systems (can work on other systems too)
-- randomizer fixes
-
-## 0.4.3b
-- fixed some runtime graphic backend issues
-- reworked top bar
-- fixed japanese familiars being in the wrong order
-- update various panels to have clearer language
-
-# removed
-- bordeless fullscreen was removed, im not very sure how to correctly implement it im sorry, exclusive fs was made a bit better (wont auto-minimize anymore)
-
-# known bugs
-
-- display scale can cause issues with the gui
-- ogl 3.3 does not display the photo post richter dracula battle correctly
-
-# UNTESTED
-
-- OGL 3.3 support has not yet been fully tested and can have minor issues
-
-# WARNING
-
-from 0.4b onwards you are required to have dotnet 10 installed, if you dont the application will fail to launch, from now on every changelog will include the section bellow for new users
-
-the reason betwen this decision is to reduce file size and fix the modding system, it doesnt work in single file publish, having it self contained creates a montain of files, so removing it from self contained both reduces the ammount of files and the size of the application
+Just to reinterate, this is a pre-release version, some stuff is not yet fully tested or finished
 
 # Dependencies
 

@@ -10,10 +10,15 @@ if (Array.Find(asm.GetManifestResourceNames(), n => n.EndsWith(".languages.json"
 
 RecompOne.Runtime.Runtime.SetStartupNotice("startup.beta", "startup.title", "SymphonyRecompBetaAck");
 
+RecompOne.Runtime.Features.FrameInterpolation = false;
+
+Directory.CreateDirectory("translations");
+
 DiscCheck.Register();
+Recompiled.Translation.GameLanguage.Register();
 WidescreenPatch.Register();
-WidescreenSettings.Register();
-ThroneLeftFill.Register();
+TextureSourcesPatch.Register();
+RoomFills.Register();
 GameMenu.Register();
 CheatMenu.Register();
 QualityOfLifeMenu.Register();
@@ -32,5 +37,7 @@ if (Array.Find(asm.GetManifestResourceNames(), n => n.EndsWith(".SymphonyRecomp.
     RecompOne.Runtime.Runtime.SetIcon(iconMem.ToArray());
 }
 
-RecompOne.Runtime.Runtime.Run(() => Entry.Run(new PSMemory(), args.Length > 0 ? args[0] : null, title));
+const uint RamSize = 0x00800000; //8
+
+RecompOne.Runtime.Runtime.Run(() => Entry.Run(new PSMemory(RamSize), args.Length > 0 ? args[0] : null, title));
 return 0;

@@ -152,40 +152,26 @@ public sealed class MainActivity : Activity, ISurfaceHolderCallback
             var files = FilesDir?.AbsolutePath;
             if (files != null)
             {
-                ConfigManager.RootDirectory = files;
+                Settings.RootDirectory = files;
                 Console.WriteLine($"[Activity] config root = {files}");
             }
 
             ResolveDiscPath();
-            Console.WriteLine($"[Activity] disc = '{ConfigManager.Game.CdPath}'");
+            Console.WriteLine($"[Activity] disc = '{Settings.System.DiscPath}'");
             WidescreenPatch.Register();
 
-            // WidescreenPatch defaults OriginalAspect=true, i.e. 4:3, and the only
-            // thing that ever set it false was the ImGui settings section that the
-            // Android target drops. Enable it once the runtime is up: ConfigManager
-            // .Load() replaces View during HostWindow.Initialize, so setting this
-            // any earlier would be discarded.
-            //
-            // Both the config keys and the statics are set because EnsureInitialized
-            // latches on first use and may already have read the defaults by now.
-            RecompOne.Runtime.Events.Event.AddListener<RecompOne.Runtime.Events.RuntimeReadyEvent>(_ =>
-            {
-                const float Wide = 16f / 9f;
-                var view = RecompOne.Runtime.Runtime.View;
-                view.SetBool("WidescreenOriginalAspect", false);
-                view.SetFloat("WidescreenAspect", Wide);
-
-                WidescreenPatch.OriginalAspect = false;
-                WidescreenPatch.StageAspect = Wide;
-                RecompOne.Runtime.Hle.Display.TargetAspect = Wide;
-                WidescreenPatch.Refresh();
-                Console.WriteLine("[Activity] widescreen enabled at 16:9");
-            });
+            // The upstream options replace Runtime.View. Preserve user preferences,
+            // while giving new Android installs the port's usual 16:9 default.
+            if (!WidescreenOptions.OriginalAspect.IsSet) WidescreenOptions.OriginalAspect.Value = false;
+            WidescreenPatch.Refresh();
+            TextureSourcesPatch.Register();
+            RoomFills.Register();
+            Recompiled.Translation.GameLanguage.Register();
 
             Console.WriteLine("[Activity] widescreen registered, entering Entry.Run");
 
-            var mem = new PSMemory();
-            Entry.Run(mem, ConfigManager.Game.CdPath, "SymphonyRecomp");
+            var mem = new PSMemory(0x00800000); // Upstream room extensions use 8 MiB RAM.
+            RecompOne.Runtime.Runtime.Run(() => Entry.Run(mem, Settings.System.DiscPath, "SymphonyRecomp"));
             Console.WriteLine("[Activity] Entry.Run returned");
         }
         catch (Exception e)
@@ -200,7 +186,7 @@ public sealed class MainActivity : Activity, ISurfaceHolderCallback
     // `adb push` and any file manager can reach without special permissions.
     void ResolveDiscPath()
     {
-        var configured = ConfigManager.Game.CdPath;
+        var configured = Settings.System.DiscPath;
         if (!string.IsNullOrWhiteSpace(configured) && File.Exists(configured)) return;
 
         var root = GetExternalFilesDir(null)?.AbsolutePath;
@@ -209,8 +195,8 @@ public sealed class MainActivity : Activity, ISurfaceHolderCallback
         var cue = Path.Combine(root, "disc", "Castlevania - Symphony of the Night (USA).cue");
         if (File.Exists(cue))
         {
-            ConfigManager.Game.CdPath = cue;
-            ConfigManager.SaveGame();
+            Settings.System.DiscPath = cue;
+            Settings.Save();
             return;
         }
 

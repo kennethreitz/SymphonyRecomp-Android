@@ -11,3 +11,6 @@ interface.ini
 debug_dump/
 disc/
 mods/.cache
+packs/
+translations/
+shaders/

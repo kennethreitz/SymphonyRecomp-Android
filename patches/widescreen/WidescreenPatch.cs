@@ -1,23 +1,24 @@
+using Sotn;
 using RecompOne.Runtime.Context;
 using RecompOne.Runtime.Events;
 using RecompOne.Runtime.Memory;
 using RecompOne.Runtime.Hle;
-using Sotn;
 
 namespace Recompiled;
 
 public static partial class WidescreenPatch
 {
-    public static bool PillarBoxing = true;
-    public static bool Unstretch = true;
-    public static bool OriginalAspect = true;
+    public static bool Unstretch => WidescreenOptions.Unstretch;
+    public static bool OriginalAspect => WidescreenOptions.OriginalAspect;
+    public static bool Zoomed => !WidescreenOptions.Letterbox && !OriginalAspect && !_zoomSuspended;
+    public static float StageAspect => WidescreenOptions.Aspect;
     public const int StageWidth = 256;
     public const int StageHeight = 240;
+    public const int StageViewTop = 0x14;
+    public const int StageViewHeight = 0xCF;
 
-    public static float SourceAspect => Unstretch ? (float)StageWidth / StageHeight : 4f / 3f;
-    public static short StageViewTop => PillarBoxing ? (short)0x14 : (short)0;
-    public static short StageViewHeight => PillarBoxing ? (short)0xCF : (short)240;
-    public static float StageAspect = 16f / 9f;
+    public static float SourceAspect => (Unstretch ? (float)StageWidth / StageHeight : 4f / 3f) *
+                                        (Zoomed ? (float)StageHeight / StageViewHeight : 1f);
 
     const uint GpuBuffers = 0x8003CB08;
     const uint GpuBufferStride = 0x177F4;
@@ -42,6 +43,9 @@ public static partial class WidescreenPatch
     const int OtSize = 0x200;
     const int MaxDrawModes = 0x400;
     const int MaxSprt16 = 0x280;
+    const uint ExtSprite16Base = 0x80200000;
+    const int ExtMaxSprt16 = 0x2000;
+    const uint ExtSprite16Stride = (uint)ExtMaxSprt16 * 16;
     const int HorizTiles = 17;
     const int VertiTiles = 16;
     const int MaxBgLayers = 16;
@@ -55,50 +59,43 @@ public static partial class WidescreenPatch
 
     static uint Buf(int i) => GpuBuffers + (uint)i * GpuBufferStride;
 
-    static bool _initialized;
-
-    static void EnsureInitialized()
-    {
-        if (_initialized) return;
-        _initialized = true;
-        float aspect = RecompOne.Runtime.Runtime.View.GetFloat("WidescreenAspect", 16f / 9f);
-        Display.TargetAspect = aspect;
-        StageAspect = aspect;
-        PillarBoxing = RecompOne.Runtime.Runtime.View.GetBool("WidescreenPillarBoxing", true);
-        Unstretch = RecompOne.Runtime.Runtime.View.GetBool("WidescreenUnstretch", true);
-        OriginalAspect = RecompOne.Runtime.Runtime.View.GetBool("WidescreenOriginalAspect", true);
-    }
-
-    // Some stages' art simply does not extend past 4:3, so a wider viewport shows
-    // past the edge of the set rather than more of it. The prologue is the clear
-    // case. These stay pillarboxed no matter what the widescreen setting says.
-    static readonly Stage[] NarrowStages = [Stage.Prologue];
-
-    static bool StageSupportsWide()
-    {
-        foreach (var s in NarrowStages)
-            if (Stages.Current == s) return false;
-        return true;
-    }
+    // Preserve the Android port's safe prologue framing until tested with the
+    // new room extensions on hardware.
+    static bool StageSupportsWide() => Stages.Current != Stage.Prologue;
 
     public static void Register()
     {
+        Display.TargetAspect = StageAspect;
         Event.AddListener<DisplayModeEvent>(OnDisplayMode);
-        // The display mode does not change when moving between rooms of the same
-        // kind, so re-evaluate on room load too or the stage gate above would only
-        // take effect on the next menu round-trip.
+        WidescreenOptions.Aspect.Changed += _ => Refresh();
+        WidescreenOptions.OriginalAspect.Changed += _ => _viewPending = true;
+        WidescreenOptions.Unstretch.Changed += _ => Refresh();
+        WidescreenOptions.Letterbox.Changed += _ => _viewPending = true;
+        Event.AddListener<TilemapRenderedEvent>(ApplyPendingView);
+        Event.AddListener<OverlayLoadedEvent>(_ => _viewPending = true);
         Event.AddListener<RoomLayerLoadEvent>(_ => Refresh());
         RegisterEffectPrims();
+#if !ANDROID
+        WidescreenSettings.Register();
+#endif
     }
 
-    static void OnDisplayMode(DisplayModeEvent e) => ApplyDisplay(e.Mode);
+    static void OnDisplayMode(DisplayModeEvent e)
+    {
+        if (e.Mode == DisplayMode.Stage)
+        {
+            _zoomSuspended = false;
+            _viewPending = true;
+        }
+        ApplyDisplay(e.Mode);
+        if (e.Mode == DisplayMode.Stage && e.Memory is { } m) RefreshFade(e.Context, m);
+    }
 
     public static void Refresh() => ApplyDisplay(DisplayModeHooks.Current);
 
     static void ApplyDisplay(DisplayMode mode)
     {
-        EnsureInitialized();
-        StageAspect = Display.TargetAspect;
+        Display.TargetAspect = StageAspect;
         bool stage = mode == DisplayMode.Stage;
         Display.SourceAspect = stage ? SourceAspect : 4f / 3f;
         Display.OutputAspect = 4f / 3f;
@@ -107,17 +104,68 @@ public static partial class WidescreenPatch
 
     public static void ConfigStageClip(CpuContext c, IMemory m)
     {
-        EnsureInitialized();
+        ApplyStageClip(m, c.A0 != 0);
+        if (DisplayModeHooks.IsStage) ApplyStageView(m);
+    }
 
-        ushort top = (ushort)StageViewTop;
-        ushort h = (ushort)StageViewHeight;
-        ushort buf1Top = (ushort)((c.A0 != 0 ? 0x100 : 0) + StageViewTop);
+    static bool _viewPending;
+    static bool _zoomSuspended;
+
+    static void ApplyPendingView(TilemapRenderedEvent e)
+    {
+        if (!_viewPending) return;
+        _viewPending = false;
+        Refresh();
+        if (!DisplayModeHooks.IsStage) return;
+
+        var m = e.Memory;
+        ApplyStageView(m);
+        if (!Zoomed) ClearStageBuffers(m);
+    }
+
+    static void SuspendZoom(IMemory m)
+    {
+        if (!Zoomed) return;
+        _zoomSuspended = true;
+        Refresh();
+        ApplyStageView(m);
+        ClearStageBuffers(m);
+    }
+
+    static void ClearStageBuffers(IMemory m)
+    {
+        if (RecompOne.Runtime.Runtime.Gpu is not { } gpu) return;
+        for (int i = 0; i < 2; i++)
+        {
+            uint draw = Buf(i) + DrawOfs;
+            gpu.WriteGp0(0x02000000);
+            gpu.WriteGp0((uint)(m.ReadU16(draw + 0x02) & 0x100) << 16 | m.ReadU16(draw));
+            gpu.WriteGp0((uint)StageHeight << 16 | m.ReadU16(draw + 0x04));
+        }
+    }
+
+    static void ApplyStageView(IMemory m)
+    {
+        bool zoomed = Zoomed;
+        for (int i = 0; i < 2; i++)
+        {
+            uint disp = Buf(i) + DispOfs;
+            int top = m.ReadU16(disp + 0x02) & 0x100;
+            m.WriteU16(disp + 0x02, (ushort)(top + (zoomed ? StageViewTop : 0)));
+            m.WriteU16(disp + 0x06, (ushort)(zoomed ? StageViewHeight : StageHeight));
+            m.WriteU16(disp + 0x0E, (ushort)(zoomed ? StageViewHeight : 0));
+        }
+    }
+
+    static void ApplyStageClip(IMemory m, bool bufferOffset)
+    {
+        ushort buf1Top = (ushort)((bufferOffset ? 0x100 : 0) + StageViewTop);
 
         for (int i = 0; i < 2; i++)
         {
             uint draw = Buf(i) + DrawOfs;
-            m.WriteU16(draw + 0x02, i == 0 ? top : buf1Top);
-            m.WriteU16(draw + 0x06, h);
+            m.WriteU16(draw + 0x02, i == 0 ? (ushort)StageViewTop : buf1Top);
+            m.WriteU16(draw + 0x06, StageViewHeight);
             m.WriteU8(draw + 0x16, 0);
             m.WriteU8(draw + 0x18, 1);
             m.WriteU8(draw + 0x19, 0);
@@ -216,7 +264,7 @@ public static partial class WidescreenPatch
         _fadeWidth = 256;
         c.A0 = 1;
         c.A1 = 4;
-        SoTN.AllocPrimitives(c, m);
+        SoTN_dra.AllocPrimitives(c, m);
         uint fadePrim = c.V0;
         m.WriteU32(FadeAddr + 0x0, fadePrim);
         LayoutFadePrims(m, fadePrim, 256);
@@ -225,7 +273,7 @@ public static partial class WidescreenPatch
 
         c.A0 = 4;
         c.A1 = 1;
-        SoTN.AllocPrimitives(c, m);
+        SoTN_dra.AllocPrimitives(c, m);
         uint mapPrim = c.V0;
         m.WriteU32(FadeAddr + 0x4, mapPrim);
         uint prim = PrimBufAddr + mapPrim * PrimStride;
@@ -265,7 +313,7 @@ public static partial class WidescreenPatch
     {
         public uint Layout, GfxPage, GfxIndex, Clut, Flags;
         public int Order, RoomW, RoomH, ScrollX, ScrollY, TpageBase;
-        public bool Wrap, SemiTrans, ClutAlt;
+        public bool Wrap, SemiTrans, ClutAlt, Mirror;
     }
 
     public static void RenderTilemapWide(CpuContext c, IMemory m)
@@ -282,11 +330,15 @@ public static partial class WidescreenPatch
         Span<Layer> layers = stackalloc Layer[1 + MaxBgLayers];
         int n = 0;
 
+        bool fgVisible = false;
         uint hide = m.ReadU32(TilemapAddr + 0x28);
         if (hide > 0)
             m.WriteU32(TilemapAddr + 0x28, hide - 1);
         else if (ReadLayer(m, TilemapAddr, out var fg))
+        {
             layers[n++] = fg;
+            fgVisible = true;
+        }
 
         for (int l = 0; l < MaxBgLayers; l++)
         {
@@ -294,20 +346,22 @@ public static partial class WidescreenPatch
             hide = m.ReadU32(addr + 0x28);
             if (hide > 0) { m.WriteU32(addr + 0x28, hide - 1); continue; }
             if (ReadLayer(m, addr, out var bg))
+            {
+                bg.Mirror = l == 0 && !bg.Wrap && MirrorBackground(m, addr);
                 layers[n++] = bg;
+            }
         }
 
-        int budget = 0;
-        if (marginCols > 0)
-        {
-            int stock = 0;
-            for (int i = 0; i < n; i++)
-                stock += CountStock(m, in layers[i]);
-            budget = Math.Max(0, MaxSprt16 - (int)sp16 - stock);
-        }
+        uint pool = ExtSprite16Base + (buf == Buf(1) ? ExtSprite16Stride : 0u);
+        BeginMirror(buf);
 
+        bool bgMargins = StageOverlay(m)?.Name.ToLowerInvariant() is not ("wrp" or "rwrp");
         for (int i = 0; i < n; i++)
-            DrawLayer(m, in layers[i], buf, ot, bbX, bbY, marginCols, ref sp16, ref dm, ref budget);
+        {
+            bool foreground = i == 0 && fgVisible;
+            DrawLayer(m, in layers[i], buf, pool, ot, bbX, bbY, foreground || bgMargins ? marginCols : 0,
+                ref sp16, ref dm, foreground);
+        }
 
         m.WriteU32(GpuUsageAddr + 0x14, sp16);
         m.WriteU32(GpuUsageAddr + 0x00, dm);
@@ -318,6 +372,7 @@ public static partial class WidescreenPatch
             Memory = m,
             ScrollX = S16(m, TilemapScrollXHi),
             ScrollY = S16(m, TmScrollYHi),
+            LayersVisible = n > 0,
         });
     }
 
@@ -345,32 +400,10 @@ public static partial class WidescreenPatch
         return true;
     }
 
-    static int CountStock(IMemory m, in Layer L)
-    {
-        int startTx = L.ScrollX >> 4, startTy = L.ScrollY >> 4;
-        if (L.Wrap) { startTx &= 0xF; startTy &= 0xF; }
-        int count = 0;
-        for (int i = 0; i < VertiTiles; i++)
-        {
-            int ty = startTy + i;
-            if (L.Wrap) ty &= 0xF;
-            if (ty < 0) continue;
-            if (ty >= L.RoomH) break;
-            int row = ty * L.RoomW;
-            for (int j = 0; j < HorizTiles; j++)
-            {
-                int tx = startTx + j;
-                if (L.Wrap) tx &= 0xF;
-                if (tx < 0) continue;
-                if (tx >= L.RoomW) break;
-                if (m.ReadU16(L.Layout + (uint)(row + tx) * 2) != 0) count++;
-            }
-        }
-        return count;
-    }
+    static readonly TilemapLayerDrawnEvent _layerEvent = new();
 
-    static void DrawLayer(IMemory m, in Layer L, uint buf, uint ot, int bbX, int bbY,
-        int marginCols, ref uint sp16, ref uint dm, ref int budget)
+    static void DrawLayer(IMemory m, in Layer L, uint buf, uint pool, uint ot, int bbX, int bbY,
+        int marginCols, ref uint sp16, ref uint dm, bool foreground)
     {
         int subX = L.ScrollX & 0xF, startTx = L.ScrollX >> 4;
         int subY = L.ScrollY & 0xF, startTy = L.ScrollY >> 4;
@@ -390,14 +423,16 @@ public static partial class WidescreenPatch
             {
                 int tx = startTx + j;
                 if (L.Wrap) tx &= 0xF;
+                if (L.Mirror && (tx < 0 || tx >= L.RoomW))
+                {
+                    DrawMirroredTile(m, in L, ot, row, tx, x0, y0);
+                    continue;
+                }
                 if (tx < 0) continue;
                 if (tx >= L.RoomW) break;
                 ushort tile = m.ReadU16(L.Layout + (uint)(row + tx) * 2);
                 if (tile == 0) continue;
-                bool marginTile = j < 0 || j >= HorizTiles;
-                if (marginTile && budget <= 0) continue;
-                if (sp16 >= MaxSprt16) continue;
-                if (marginTile) budget--;
+                if (sp16 >= ExtMaxSprt16) continue;
 
                 byte g = m.ReadU8(L.GfxIndex + tile);
                 byte u = (byte)(g << 4);
@@ -406,7 +441,7 @@ public static partial class WidescreenPatch
                 byte clutIdx = m.ReadU8(L.Clut + tile);
                 ushort clut = m.ReadU16(ClutIdsAddr + (uint)((L.ClutAlt ? 0x100 : 0) + clutIdx) * 2);
 
-                uint prim = buf + Sprite16Ofs + sp16 * 16;
+                uint prim = pool + sp16 * 16;
                 AddPrim(m, ot, L.Order + page, prim, 3);
                 m.WriteU32(prim + 4, cmd << 24 | 0x808080);
                 m.WriteU32(prim + 8, (uint)(ushort)y0 << 16 | (ushort)x0);
@@ -414,6 +449,35 @@ public static partial class WidescreenPatch
                 sp16++;
             }
         }
+
+        _layerEvent.Context = null;
+        _layerEvent.Memory = m;
+        _layerEvent.Foreground = foreground;
+        _layerEvent.Layout = L.Layout;
+        _layerEvent.Columns = L.RoomW;
+        _layerEvent.Rows = L.RoomH;
+        _layerEvent.Wrap = L.Wrap;
+        _layerEvent.Pool = pool;
+        _layerEvent.Ot = ot;
+        _layerEvent.GfxPage = L.GfxPage;
+        _layerEvent.GfxIndex = L.GfxIndex;
+        _layerEvent.ClutTable = L.Clut;
+        _layerEvent.Cmd = cmd;
+        _layerEvent.ClutBase = L.ClutAlt ? 0x100u : 0u;
+        _layerEvent.Order = L.Order;
+        _layerEvent.BackbufferX = bbX;
+        _layerEvent.BackbufferY = bbY;
+        _layerEvent.ScrollX = L.ScrollX;
+        _layerEvent.ScrollY = L.ScrollY;
+        _layerEvent.Sprites = sp16;
+        _layerEvent.MaxSprites = ExtMaxSprt16;
+        _layerEvent.TpageBase = 8 + L.TpageBase + ((L.Flags & LayerTpageAlt) != 0 ? 0x80 : 0);
+        _layerEvent.DrawModesAddr = buf + DrawModesOfs;
+        _layerEvent.DrawModes = dm;
+        _layerEvent.MaxDrawModes = MaxDrawModes;
+        Event.Dispatch(_layerEvent);
+        sp16 = _layerEvent.Sprites;
+        dm = _layerEvent.DrawModes;
 
         for (int i = 0; i < 24; i++)
         {

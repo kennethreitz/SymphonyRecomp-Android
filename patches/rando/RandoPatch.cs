@@ -231,7 +231,7 @@ public static partial class RandoPatch
             m.WriteU8(0x8003BEBC, 0x05);    // Warps
             c.A0 = 0x19;
             c.A1 = 0x01;
-            SoTN.AddToInventory(c, m);      // Give Axelord Armor
+            SoTN_dra.AddToInventory(c, m);      // Give Axelord Armor
         }
         if (CUR_PRESET == (byte)PresetId.Mobility)
         {
@@ -251,7 +251,7 @@ public static partial class RandoPatch
             {
                 c.A0 = (UInt32)(0x94 + i);
                 c.A1 = 0;
-                SoTN.AddToInventory(c, m);
+                SoTN_dra.AddToInventory(c, m);
             }
         }
 
@@ -349,9 +349,9 @@ public static partial class RandoPatch
         }
         m.WriteU32((c.SP + 0x10u), c.S0);
         c.RA = 0x800FF7D8u;
-        SoTN.func_800F53A4(c, m);
+        SoTN_dra.func_800F53A4(c, m);
         c.RA = 0x800FF7E0u;
-        SoTN.UpdateCapePalette(c, m);
+        SoTN_dra.UpdateCapePalette(c, m);
         goto L8010073C;
     L800FF7E8:;
         c.V0 = 0u | 0x0001u;
@@ -497,7 +497,7 @@ public static partial class RandoPatch
         c.V0 = 0u | 0x0030u;
         m.WriteU32(c.A0, c.V0);
         c.RA = 0x800FF94Cu;
-        SoTN.UpdateCapePalette(c, m);
+        SoTN_dra.UpdateCapePalette(c, m);
         goto L800FF970;
     L800FF954:;
         c.V0 = 0x80090000u;
@@ -743,7 +743,7 @@ public static partial class RandoPatch
             goto L800FFC3C;
         }
         c.RA = 0x800FFC0Cu;
-        SoTN.rand(c, m);
+        SoTN_main.rand(c, m);
         c.V1 = 0x38E30000u;
         c.V1 = c.V1 | 0x8E39u;
         { var _r = (long)(int)c.V0 * (int)c.V1; c.LO = (uint)_r; c.HI = (uint)(_r >> 32); }
@@ -812,23 +812,23 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x001Au;
         c.A1 = 0u | 0x0001u;
         c.RA = 0x800FFD08u;
-        SoTN.TimeAttackController(c, m);
+        SoTN_dra.TimeAttackController(c, m);
         c.A0 = 0u | 0x0009u;
         c.A1 = 0u | 0x0001u;
         c.RA = 0x800FFD14u;
-        SoTN.TimeAttackController(c, m);
+        SoTN_dra.TimeAttackController(c, m);
         c.A0 = 0u | 0x0004u;
         c.A1 = 0u | 0x0001u;
         c.RA = 0x800FFD20u;
-        SoTN.TimeAttackController(c, m);
+        SoTN_dra.TimeAttackController(c, m);
         c.A0 = 0u | 0x000Eu;
         c.A1 = 0u | 0x0001u;
         c.RA = 0x800FFD2Cu;
-        SoTN.TimeAttackController(c, m);
+        SoTN_dra.TimeAttackController(c, m);
         c.A0 = 0u | 0x000Cu;
         c.A1 = 0u | 0x0001u;
         c.RA = 0x800FFD38u;
-        SoTN.TimeAttackController(c, m);
+        SoTN_dra.TimeAttackController(c, m);
     L800FFD38:;
         c.At = 0x80090000u;
         m.WriteU32((c.At + 0x7C30u), 0u);
@@ -880,7 +880,7 @@ public static partial class RandoPatch
         c.A0 = 0u | m.ReadU16(0x800FFDC0);      // Read Reward Id from Overlay Data
         c.A1 = 0u + 0u;
         c.RA = 0x800FFDCCu;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.S0 = 0u | 0x0003u;
         goto L800FFE94;
     L800FFDD4:;
@@ -957,7 +957,7 @@ public static partial class RandoPatch
         c.A0 = 0u | m.ReadU16(0x800FFEAC);  // Read Reward ID from Overlay Data
         c.A1 = 0u + 0u;
         c.RA = 0x800FFEB8u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
     L800FFEB8:;
         c.V1 = 0x80090000u;
         c.V1 = c.V1 + 0x7BA4u;
@@ -992,7 +992,7 @@ public static partial class RandoPatch
         c.A0 = 0u | m.ReadU16(0x800FFF08);  // Read Reward ID from Overlay Data
         c.A1 = 0u + 0u;
         c.RA = 0x800FFF14u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU32((c.V0 + 0x7BC0u));
         c.V0 = c.V0 + 0x1u;
@@ -1118,7 +1118,7 @@ public static partial class RandoPatch
     L80100084:;
         c.A1 = 0u + 0u;
         c.RA = 0x8010008Cu;
-        SoTN.TimeAttackController(c, m);
+        SoTN_dra.TimeAttackController(c, m);
         c.V1 = c.V0 + 0u;
         c.V0 = (int)c.V1 < 101 ? 1u : 0u;
         if (c.V0 == 0u)
@@ -1335,7 +1335,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x0019u;
         c.A1 = 0u | 0x0002u;
         c.RA = 0x80100314u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         goto L80100734;
     L8010031C:;
         c.V0 = 0x80040000u;
@@ -1509,125 +1509,125 @@ public static partial class RandoPatch
         m.WriteU8((c.At + 0x7971u), (byte)c.V0);
         c.A1 = 0u + 0u;
         c.RA = 0x8010055Cu;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0070u;
         c.A1 = 0u + 0u;
         c.RA = 0x80100568u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0071u;
         c.A1 = 0u + 0u;
         c.RA = 0x80100574u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0062u;
         c.A1 = 0u + 0u;
         c.RA = 0x80100580u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0080u;
         c.A1 = 0u + 0u;
         c.RA = 0x8010058Cu;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0064u;
         c.A1 = 0u + 0u;
         c.RA = 0x80100598u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0006u;
         c.A1 = 0u + 0u;
         c.RA = 0x801005A4u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0007u;
         c.A1 = 0u + 0u;
         c.RA = 0x801005B0u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0012u;
         c.A1 = 0u + 0u;
         c.RA = 0x801005BCu;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0017u;
         c.A1 = 0u + 0u;
         c.RA = 0x801005C8u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0055u;
         c.A1 = 0u + 0u;
         c.RA = 0x801005D4u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0058u;
         c.A1 = 0u + 0u;
         c.RA = 0x801005E0u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0001u;
         c.A1 = 0u | 0x0002u;
         c.RA = 0x801005ECu;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0003u;
         c.A1 = 0u | 0x0002u;
         c.RA = 0x801005F8u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0004u;
         c.A1 = 0u | 0x0002u;
         c.RA = 0x80100604u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0005u;
         c.A1 = 0u | 0x0002u;
         c.RA = 0x80100610u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0006u;
         c.A1 = 0u | 0x0002u;
         c.RA = 0x8010061Cu;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0007u;
         c.A1 = 0u | 0x0002u;
         c.RA = 0x80100628u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x000Au;
         c.A1 = 0u | 0x0002u;
         c.RA = 0x80100634u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x000Du;
         c.A1 = 0u | 0x0002u;
         c.RA = 0x80100640u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x001Fu;
         c.A1 = 0u | 0x0001u;
         c.RA = 0x8010064Cu;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0021u;
         c.A1 = 0u | 0x0001u;
         c.RA = 0x80100658u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0023u;
         c.A1 = 0u | 0x0001u;
         c.RA = 0x80100664u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0031u;
         c.A1 = 0u | 0x0003u;
         c.RA = 0x80100670u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0033u;
         c.A1 = 0u | 0x0003u;
         c.RA = 0x8010067Cu;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0035u;
         c.A1 = 0u | 0x0003u;
         c.RA = 0x80100688u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0032u;
         c.A1 = 0u | 0x0003u;
         c.RA = 0x80100694u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0052u;
         c.A1 = 0u | 0x0004u;
         c.RA = 0x801006A0u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x004Fu;
         c.A1 = 0u | 0x0004u;
         c.RA = 0x801006ACu;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.S0 = 0u + 0u;
         c.A0 = 0u | 0x009Fu;
     L801006B4:;
         c.A1 = 0u + 0u;
         c.RA = 0x801006BCu;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.S0 = c.S0 + 0x1u;
         c.V0 = (int)c.S0 < 80 ? 1u : 0u;
         if (c.V0 != 0u)
@@ -1641,31 +1641,31 @@ public static partial class RandoPatch
     L801006D4:;
         c.A1 = 0u + 0u;
         c.RA = 0x801006DCu;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0045u;
         c.A1 = 0u + 0u;
         c.RA = 0x801006E8u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0043u;
         c.A1 = 0u + 0u;
         c.RA = 0x801006F4u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0090u;
         c.A1 = 0u + 0u;
         c.RA = 0x80100700u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0051u;
         c.A1 = 0u + 0u;
         c.RA = 0x8010070Cu;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0052u;
         c.A1 = 0u + 0u;
         c.RA = 0x80100718u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.A0 = 0u | 0x0049u;
         c.A1 = 0u + 0u;
         c.RA = 0x80100724u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         c.S0 = c.S0 + 0x1u;
         c.V0 = (int)c.S0 < 10 ? 1u : 0u;
         if (c.V0 != 0u)
@@ -1676,7 +1676,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x0019u;
     L80100734:;
         c.RA = 0x8010073Cu;
-        SoTN.func_800F53A4(c, m);
+        SoTN_dra.func_800F53A4(c, m);
     L8010073C:;
         c.RA = m.ReadU32((c.SP + 0x14u));
         c.S0 = m.ReadU32((c.SP + 0x10u));
@@ -1723,7 +1723,7 @@ public static partial class RandoPatch
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0xB40u;
         c.RA = 0x801AC824u;
-        SoTN.RNZ1_InitializeEntity(c, m);
+        SoTN_rnz1.RNZ1_InitializeEntity(c, m);
         c.A0 = 0u | 0x0014u;
         c.V0 = 0x80040000u;
         c.V0 = m.ReadU32((c.V0 - 0x37C0u));
@@ -1760,7 +1760,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x002Fu;
         c.A1 = c.S0 + 0u;
         c.RA = 0x801AC888u;
-        SoTN.RNZ1_CreateEntityFromCurrentEntity(c, m);
+        SoTN_rnz1.RNZ1_CreateEntityFromCurrentEntity(c, m);
         c.A1 = c.S0 + 0xBCu;
         c.S2 = 0x80070000u;
         c.S2 = c.S2 + 0x308Eu;
@@ -1777,7 +1777,7 @@ public static partial class RandoPatch
         m.WriteU16((c.At + 0x6DE2u), (ushort)c.V0);
         c.A0 = 0u | 0x002Eu;
         c.RA = 0x801AC8C8u;
-        SoTN.RNZ1_CreateEntityFromCurrentEntity(c, m);
+        SoTN_rnz1.RNZ1_CreateEntityFromCurrentEntity(c, m);
         c.V0 = m.ReadU16(c.S2);
         c.V1 = 0x80070000u;
         c.V1 = m.ReadU16((c.V1 + 0x3092u));
@@ -1816,7 +1816,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x0034u;
         c.A1 = c.S3 + 0xBCu;
         c.RA = 0x801AC94Cu;
-        SoTN.RNZ1_CreateEntityFromCurrentEntity(c, m);
+        SoTN_rnz1.RNZ1_CreateEntityFromCurrentEntity(c, m);
         c.A0 = 0u | 0x0034u;
         c.S1 = 0x80070000u;
         c.S1 = c.S1 + 0x308Eu;
@@ -1832,7 +1832,7 @@ public static partial class RandoPatch
         c.V0 = c.S0 - c.V0;
         m.WriteU16((c.S3 + 0xC2u), (ushort)c.V0);
         c.RA = 0x801AC988u;
-        SoTN.RNZ1_CreateEntityFromCurrentEntity(c, m);
+        SoTN_rnz1.RNZ1_CreateEntityFromCurrentEntity(c, m);
         c.V0 = 0u | 0x0001u;
         c.At = 0x80180000u;
         m.WriteU32((c.At + 0x1304u), c.V0);
@@ -1935,7 +1935,7 @@ public static partial class RandoPatch
         c.A0 = c.A0 - 0x56A8u;
         c.A1 = c.A0 + 0x1780u;
         c.RA = 0x801ACAE8u;
-        SoTN.RNZ1_AllocEntity(c, m);
+        SoTN_rnz1.RNZ1_AllocEntity(c, m);
         c.S0 = c.V0 + 0u;
         if (c.S0 == 0u)
         {
@@ -1946,7 +1946,7 @@ public static partial class RandoPatch
         c.A1 = c.S3 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801ACB00u;
-        SoTN.RNZ1_CreateEntityFromEntity(c, m);
+        SoTN_rnz1.RNZ1_CreateEntityFromEntity(c, m);
         c.V0 = 0u | 0x0080u;
         m.WriteU16((c.S0 + 0x2u), (ushort)c.V0);
         m.WriteU16((c.S0 + 0x6u), (ushort)c.V0);
@@ -2038,7 +2038,7 @@ public static partial class RandoPatch
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0xB40u;
         c.RA = 0x801BE5E4u;
-        SoTN.RNZ1_InitializeEntity(c, m);
+        SoTN_rnz1.RNZ1_InitializeEntity(c, m);
         c.A0 = 0u | 0x0004u;
         c.V0 = 0u | 0x0002u;
         m.WriteU16((c.S2 + 0x54u), (ushort)c.V0);
@@ -2116,7 +2116,7 @@ public static partial class RandoPatch
     L801BE6F0:;
         c.A0 = c.S1 + 0u;
         c.RA = 0x801BE6F8u;
-        SoTN.RNZ1_UnkPolyFunc2(c, m);
+        SoTN_rnz1.RNZ1_UnkPolyFunc2(c, m);
         c.V1 = m.ReadU32(c.S1);
         c.V0 = 0u | 0x001Au;
         m.WriteU16((c.S1 + 0x1Au), (ushort)c.V0);
@@ -2233,13 +2233,13 @@ public static partial class RandoPatch
     L801BE888:;
         c.A0 = 0u | 0x0200u;
         c.RA = 0x801BE890u;
-        SoTN.SetGeomScreen(c, m);
+        SoTN_main.SetGeomScreen(c, m);
         c.A0 = (uint)(short)m.ReadU16((c.S2 + 0x2u));
         c.A1 = (uint)(short)m.ReadU16((c.S2 + 0x6u));
         c.S6 = 0u + 0u;
         m.WriteU32((c.SP + 0xA0u), 0u);
         c.RA = 0x801BE8A4u;
-        SoTN.SetGeomOffset(c, m);
+        SoTN_main.SetGeomOffset(c, m);
         c.V0 = (uint)(short)m.ReadU16((c.S2 + 0x88u));
         c.S1 = m.ReadU32((c.S2 + 0x7Cu));
         c.V0 = c.V0 + 0x1u;
@@ -2318,7 +2318,7 @@ public static partial class RandoPatch
         c.A1 = c.S3 + 0u;
         m.WriteU16((c.SP + 0x5Cu), (ushort)c.V0);
         c.RA = 0x801BE9B4u;
-        SoTN.RotMatrix(c, m);
+        SoTN_main.RotMatrix(c, m);
         c.A0 = c.S3 + 0u;
         c.A1 = m.ReadU32((c.SP + 0xA8u));
         c.V0 = 0u | 0x0200u;
@@ -2326,13 +2326,13 @@ public static partial class RandoPatch
         m.WriteU32((c.SP + 0x64u), 0u);
         m.WriteU32((c.SP + 0x68u), c.V0);
         c.RA = 0x801BE9D0u;
-        SoTN.TransMatrix(c, m);
+        SoTN_main.TransMatrix(c, m);
         c.A0 = c.S3 + 0u;
         c.RA = 0x801BE9D8u;
-        SoTN.SetRotMatrix(c, m);
+        SoTN_main.SetRotMatrix(c, m);
         c.A0 = c.S3 + 0u;
         c.RA = 0x801BE9E0u;
-        SoTN.SetTransMatrix(c, m);
+        SoTN_main.SetTransMatrix(c, m);
         c.A0 = c.SP + 0x90u;
         c.A1 = c.SP + 0x50u;
         c.A2 = c.FP + 0u;
@@ -2341,13 +2341,13 @@ public static partial class RandoPatch
         m.WriteU16((c.SP + 0x92u), (ushort)0u);
         m.WriteU16((c.SP + 0x94u), (ushort)0u);
         c.RA = 0x801BEA00u;
-        SoTN.RotTransPers(c, m);
+        SoTN_main.RotTransPers(c, m);
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0x259Cu;
         c.A1 = c.S3 + 0u;
         c.S0 = c.V0 + 0u;
         c.RA = 0x801BEA14u;
-        SoTN.RotMatrix(c, m);
+        SoTN_main.RotMatrix(c, m);
         c.A0 = c.S3 + 0u;
         c.S0 = c.S0 << 16;
         c.V0 = (uint)(short)m.ReadU16((c.SP + 0x50u));
@@ -2362,7 +2362,7 @@ public static partial class RandoPatch
         c.V0 = c.V0 - c.V1;
         m.WriteU32((c.SP + 0x64u), c.V0);
         c.RA = 0x801BEA4Cu;
-        SoTN.TransMatrix(c, m);
+        SoTN_main.TransMatrix(c, m);
         c.V0 = m.ReadU32(c.S1);
         c.V0 = (uint)(short)m.ReadU16((c.V0 + 0x20u));
         c.A0 = c.S3 + 0u;
@@ -2374,13 +2374,13 @@ public static partial class RandoPatch
         m.WriteU32((c.SP + 0x68u), c.V0);
         m.WriteU32((c.SP + 0x64u), c.V1);
         c.RA = 0x801BEA7Cu;
-        SoTN.ScaleMatrix(c, m);
+        SoTN_main.ScaleMatrix(c, m);
         c.A0 = c.S3 + 0u;
         c.RA = 0x801BEA84u;
-        SoTN.SetRotMatrix(c, m);
+        SoTN_main.SetRotMatrix(c, m);
         c.A0 = c.S3 + 0u;
         c.RA = 0x801BEA8Cu;
-        SoTN.SetTransMatrix(c, m);
+        SoTN_main.SetTransMatrix(c, m);
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0x2550u;
         c.A1 = 0x80180000u;
@@ -2400,7 +2400,7 @@ public static partial class RandoPatch
         m.WriteU32((c.SP + 0x20u), c.FP);
         m.WriteU32((c.SP + 0x24u), c.S7);
         c.RA = 0x801BEAD8u;
-        SoTN.RotTransPers4(c, m);
+        SoTN_main.RotTransPers4(c, m);
         c.V1 = m.ReadU32(c.S1);
         c.V0 = m.ReadU16((c.V1 + 0x22u));
         c.V0 = c.V0 - 0x10u;
@@ -2454,7 +2454,7 @@ public static partial class RandoPatch
         goto L801BEC68;
     L801BEBA0:;
         c.RA = 0x801BEBA8u;
-        SoTN.func_801B066C(c, m);
+        SoTN_rnz1.func_801B066C(c, m);
         c.A2 = c.SP + 0x28u;
         c.A3 = 0u + 0u;
         c.A0 = (uint)(short)m.ReadU16((c.S2 + 0x2u));
@@ -2675,7 +2675,7 @@ public static partial class RandoPatch
         c.V0 = c.V0 - 0x8u;
         m.WriteU16((c.S0 + 0x6u), (ushort)c.V0);
         c.RA = 0x8018F994u;
-        SoTN.GetPlayerCollisionWith_cen(c, m);
+        SoTN_cen.GetPlayerCollisionWith_cen(c, m);
         c.S3 = 0x80070000u;
         c.S3 = c.S3 + 0x3084u;
         c.S2 = 0x80070000u;
@@ -2734,7 +2734,7 @@ public static partial class RandoPatch
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0x434u;
         c.RA = 0x8018FA38u;
-        SoTN.InitializeEntity_cen(c, m);
+        SoTN_cen.InitializeEntity_cen(c, m);
         c.V0 = 0xFFFF8002u;
         c.V1 = 0u | 0x0009u;
         m.WriteU16((c.S0 + 0x54u), (ushort)c.V0);
@@ -2751,7 +2751,7 @@ public static partial class RandoPatch
     L8018FA68:;
         c.A0 = 0u + 0u;
         c.RA = 0x8018FA70u;
-        SoTN.func_8018F8EC(c, m);
+        SoTN_cen.func_8018F8EC(c, m);
         c.V0 = c.S1 << 1;
         c.V0 = c.V0 + c.S1;
         c.V0 = c.V0 << 2;
@@ -2787,7 +2787,7 @@ public static partial class RandoPatch
         goto L8018FFE8;
     L8018FAF4:;
         c.RA = 0x8018FAFCu;
-        SoTN.GetDistanceToPlayerX_cen(c, m);
+        SoTN_cen.GetDistanceToPlayerX_cen(c, m);
         c.V0 = (int)c.V0 < 32 ? 1u : 0u;
         if (c.V0 == 0u)
         {
@@ -3039,7 +3039,7 @@ public static partial class RandoPatch
         m.WriteU32((c.At - 0x2BDCu), c.V0);
         m.WriteU32((c.S3 + 0x48u), c.V1);
         c.RA = 0x8018FD88u;
-        SoTN.func_8018F8EC(c, m);
+        SoTN_cen.func_8018F8EC(c, m);
     L8018FD88:;
         c.V0 = 0u | 0x0001u;
     L8018FD8C:;
@@ -3102,12 +3102,12 @@ public static partial class RandoPatch
     L8018FE50:;
         c.A0 = 0u | 0x0200u;
         c.RA = 0x8018FE58u;
-        SoTN.CEN_CutsceneCameraPan(c, m);
+        SoTN_cen.CEN_CutsceneCameraPan(c, m);
         goto L8018FFE8;
     L8018FE60:;
         c.A0 = 0u | 0x0200u;
         c.RA = 0x8018FE68u;
-        SoTN.CEN_CutsceneCameraPan(c, m);
+        SoTN_cen.CEN_CutsceneCameraPan(c, m);
         c.V0 = 0x801A0000u;
         c.V0 = m.ReadU32((c.V0 - 0x2BDCu));
         c.V1 = 0u | 0x0001u;
@@ -3208,7 +3208,7 @@ public static partial class RandoPatch
     L8018FF9C:;
         c.A0 = 0u | 0x0300u;
         c.RA = 0x8018FFA4u;
-        SoTN.CEN_CutsceneCameraPan(c, m);
+        SoTN_cen.CEN_CutsceneCameraPan(c, m);
         c.V0 = 0u | 0x0001u;
     L8018FFA8:;
         c.At = 0x80070000u;
@@ -3219,7 +3219,7 @@ public static partial class RandoPatch
     L8018FFC0:;
         c.A0 = 0u | 0x0300u;
         c.RA = 0x8018FFC8u;
-        SoTN.CEN_CutsceneCameraPan(c, m);
+        SoTN_cen.CEN_CutsceneCameraPan(c, m);
         c.V1 = m.ReadU32((c.S3 + 0x48u));
         c.V0 = 0u | 0x0300u;
         if (c.V1 != c.V0)
@@ -3303,7 +3303,7 @@ public static partial class RandoPatch
         c.S1 = m.ReadU32((c.S2 + 0x4u));
         c.A1 = c.S2 + 0u;
         c.RA = 0x801C828Cu;
-        SoTN.CreateEntityFromCurrentEntity_no4(c, m);
+        SoTN_no4.CreateEntityFromCurrentEntity_no4(c, m);
         c.V0 = 0u | 0x000Au;
         if (GR_is_Relic)
         {
@@ -3363,7 +3363,7 @@ public static partial class RandoPatch
         c.A0 = c.A0 + 0xADCu;
         c.S1 = 0u + 0u;
         c.RA = 0x801BA52Cu;
-        SoTN.InitializeEntity_no3(c, m);
+        SoTN_no3.InitializeEntity_no3(c, m);
         c.A1 = 0x80180000u;
         c.A1 = c.A1 + 0x127Cu;
         c.A2 = 0u | 0x01F1u;
@@ -3491,7 +3491,7 @@ public static partial class RandoPatch
         c.A1 = c.S2 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801BA6BCu;
-        SoTN.CreateEntityFromEntity_no3(c, m);
+        SoTN_no3.CreateEntityFromEntity_no3(c, m);
         c.V0 = 0u | 0x0013u;
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
         c.V0 = 0u | 0x00A9u;
@@ -3527,18 +3527,18 @@ public static partial class RandoPatch
         c.A1 = c.S2 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801BA72Cu;
-        SoTN.CreateEntityFromEntity_no3(c, m);
+        SoTN_no3.CreateEntityFromEntity_no3(c, m);
         c.V0 = m.ReadU8(c.S3);
         c.S3 = c.S3 + 0x1u;
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
         c.RA = 0x801BA73Cu;
-        SoTN.Random_no3(c, m);
+        SoTN_no3.Random_no3(c, m);
         c.V0 = c.V0 << 8;
         c.V1 = 0xFFFF8000u;
         c.V1 = c.V1 - c.V0;
         m.WriteU32((c.S0 + 0x8u), c.V1);
         c.RA = 0x801BA750u;
-        SoTN.Random_no3(c, m);
+        SoTN_no3.Random_no3(c, m);
         c.V0 = 0u - c.V0;
         c.V1 = m.ReadU16((c.S0 + 0x6u));
         c.V0 = c.V0 << 8;
@@ -3581,7 +3581,7 @@ public static partial class RandoPatch
         c.A1 = c.S2 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801BA7CCu;
-        SoTN.CreateEntityFromEntity_no3(c, m);
+        SoTN_no3.CreateEntityFromEntity_no3(c, m);
         //c.V0 = 0u | 0x0043u;
         c.V0 = 0u | m.ReadU16(0x801BA7CC);      // Read Pot Roast Replacement ID
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
@@ -3666,7 +3666,7 @@ public static partial class RandoPatch
         c.A0 = c.A0 + 0xA6Cu;
         c.S1 = 0u + 0u;
         c.RA = 0x801B4DCCu;
-        SoTN.InitializeEntity_np3(c, m);
+        SoTN_np3.InitializeEntity_np3(c, m);
         c.A1 = 0x80180000u;
         c.A1 = c.A1 + 0x1144u;
         c.A2 = 0u | 0x01F1u;
@@ -3782,7 +3782,7 @@ public static partial class RandoPatch
         c.A0 = c.S3 + 0u;
         c.A1 = c.S3 + 0x1780u;
         c.RA = 0x801B4F40u;
-        SoTN.AllocEntity_np3(c, m);
+        SoTN_np3.AllocEntity_np3(c, m);
         c.S0 = c.V0 + 0u;
         if (c.S0 == 0u)
         {
@@ -3794,7 +3794,7 @@ public static partial class RandoPatch
         c.A1 = c.S2 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801B4F5Cu;
-        SoTN.CreateEntityFromEntity_np3(c, m);
+        SoTN_np3.CreateEntityFromEntity_np3(c, m);
         c.V0 = 0u | 0x0013u;
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
         c.V0 = 0u | 0x00A9u;
@@ -3819,7 +3819,7 @@ public static partial class RandoPatch
     L801B4FAC:;
         c.A1 = c.S4 + 0x1780u;
         c.RA = 0x801B4FB4u;
-        SoTN.AllocEntity_np3(c, m);
+        SoTN_np3.AllocEntity_np3(c, m);
         c.S0 = c.V0 + 0u;
         if (c.S0 == 0u)
         {
@@ -3830,7 +3830,7 @@ public static partial class RandoPatch
         c.A1 = c.S2 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801B4FCCu;
-        SoTN.CreateEntityFromEntity_np3(c, m);
+        SoTN_np3.CreateEntityFromEntity_np3(c, m);
         c.V0 = m.ReadU8(c.S3);
         c.S3 = c.S3 + 0x1u;
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
@@ -3873,7 +3873,7 @@ public static partial class RandoPatch
         c.A0 = c.A0 - 0x56A8u;
         c.A1 = c.A0 + 0x1780u;
         c.RA = 0x801B5054u;
-        SoTN.AllocEntity_np3(c, m);
+        SoTN_np3.AllocEntity_np3(c, m);
         c.S0 = c.V0 + 0u;
         if (c.S0 == 0u)
         {
@@ -3884,7 +3884,7 @@ public static partial class RandoPatch
         c.A1 = c.S2 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801B506Cu;
-        SoTN.CreateEntityFromEntity_np3(c, m);
+        SoTN_np3.CreateEntityFromEntity_np3(c, m);
         //c.V0 = 0u | 0x0043u;
         c.V0 = 0u | m.ReadU16(0x801B506C);
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
@@ -3964,7 +3964,7 @@ public static partial class RandoPatch
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0xADCu;
         c.RA = 0x801BAF4Cu;
-        SoTN.InitializeEntity_no3(c, m);
+        SoTN_no3.InitializeEntity_no3(c, m);
         c.V0 = 0u | 0x0008u;
         m.WriteU8((c.S1 + 0x46u), (byte)c.V0);
         m.WriteU8((c.S1 + 0x47u), (byte)c.V0);
@@ -4065,7 +4065,7 @@ public static partial class RandoPatch
         c.A1 = c.S1 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801BB0A8u;
-        SoTN.CreateEntityFromEntity_no3(c, m);
+        SoTN_no3.CreateEntityFromEntity_no3(c, m);
         //c.V0 = 0u | 0x0045u;
         c.V0 = 0u | m.ReadU16(0x801BB0A8);
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
@@ -4084,7 +4084,7 @@ public static partial class RandoPatch
         c.A1 = c.S1 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801BB0D4u;
-        SoTN.CreateEntityFromEntity_no3(c, m);
+        SoTN_no3.CreateEntityFromEntity_no3(c, m);
         c.V0 = 0u | 0x0010u;
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
         c.V0 = m.ReadU16((c.S1 + 0x24u));
@@ -4127,7 +4127,7 @@ public static partial class RandoPatch
         c.V0 = c.V0 | c.V1;
         m.WriteU32((c.S1 + 0x34u), c.V0);
         c.RA = 0x801BB168u;
-        SoTN.UnkPolyFunc2_no3(c, m);
+        SoTN_no3.UnkPolyFunc2_no3(c, m);
         c.A0 = 0x80070000u;
         c.A0 = m.ReadU32((c.A0 + 0x3088u));
         c.V0 = m.ReadU32((c.A0 + 0x4u));
@@ -4186,7 +4186,7 @@ public static partial class RandoPatch
         c.V0 = c.V0 + 0x2000u;
         m.WriteU32((c.V1 + 0x10u), c.V0);
         c.RA = 0x801BB27Cu;
-        SoTN.UnkPrimHelper_no3(c, m);
+        SoTN_no3.UnkPrimHelper_no3(c, m);
         c.A2 = c.SP + 0x10u;
         c.V0 = m.ReadU32(c.S0);
         c.A3 = 0u + 0u;
@@ -4238,7 +4238,7 @@ public static partial class RandoPatch
         c.A1 = c.S1 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801BB31Cu;
-        SoTN.CreateEntityFromEntity_no3(c, m);
+        SoTN_no3.CreateEntityFromEntity_no3(c, m);
         c.V0 = 0u | 0x0011u;
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
         c.V0 = m.ReadU16((c.S1 + 0x24u));
@@ -4262,9 +4262,9 @@ public static partial class RandoPatch
         c.A1 = c.S1 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801BB360u;
-        SoTN.CreateEntityFromEntity_no3(c, m);
+        SoTN_no3.CreateEntityFromEntity_no3(c, m);
         c.RA = 0x801BB368u;
-        SoTN.Random_no3(c, m);
+        SoTN_no3.Random_no3(c, m);
         c.V0 = c.V0 & 0x0003u;
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
         c.V0 = m.ReadU16((c.S0 + 0x30u));
@@ -4287,7 +4287,7 @@ public static partial class RandoPatch
     L801BB390:;
         c.A0 = c.S1 + 0u;
         c.RA = 0x801BB398u;
-        SoTN.DestroyEntity_no3(c, m);
+        SoTN_no3.DestroyEntity_no3(c, m);
     L801BB398:;
         c.RA = m.ReadU32((c.SP + 0x54u));
         c.S4 = m.ReadU32((c.SP + 0x50u));
@@ -4334,7 +4334,7 @@ public static partial class RandoPatch
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0xA6Cu;
         c.RA = 0x801B57ECu;
-        SoTN.InitializeEntity_np3(c, m);
+        SoTN_np3.InitializeEntity_np3(c, m);
         c.V0 = 0u | 0x0008u;
         m.WriteU8((c.S1 + 0x46u), (byte)c.V0);
         m.WriteU8((c.S1 + 0x47u), (byte)c.V0);
@@ -4424,7 +4424,7 @@ public static partial class RandoPatch
         m.WriteU8((c.At - 0x41DCu), (byte)c.V0);
         c.A1 = c.S2 + 0x1780u;
         c.RA = 0x801B5930u;
-        SoTN.AllocEntity_np3(c, m);
+        SoTN_np3.AllocEntity_np3(c, m);
         c.S0 = c.V0 + 0u;
         if (c.S0 == 0u)
         {
@@ -4435,7 +4435,7 @@ public static partial class RandoPatch
         c.A1 = c.S1 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801B5948u;
-        SoTN.CreateEntityFromEntity_np3(c, m);
+        SoTN_np3.CreateEntityFromEntity_np3(c, m);
         //c.V0 = 0u | 0x0045u;
         c.V0 = 0u | m.ReadU16(0x801B5948);
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
@@ -4443,7 +4443,7 @@ public static partial class RandoPatch
         c.A0 = c.S2 + 0x2F00u;
         c.A1 = c.S2 + 0x4680u;
         c.RA = 0x801B595Cu;
-        SoTN.AllocEntity_np3(c, m);
+        SoTN_np3.AllocEntity_np3(c, m);
         c.S0 = c.V0 + 0u;
         if (c.S0 == 0u)
         {
@@ -4454,7 +4454,7 @@ public static partial class RandoPatch
         c.A1 = c.S1 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801B5974u;
-        SoTN.CreateEntityFromEntity_np3(c, m);
+        SoTN_np3.CreateEntityFromEntity_np3(c, m);
         c.V0 = 0u | 0x0010u;
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
         c.V0 = m.ReadU16((c.S1 + 0x24u));
@@ -4497,7 +4497,7 @@ public static partial class RandoPatch
         c.V0 = c.V0 | c.V1;
         m.WriteU32((c.S1 + 0x34u), c.V0);
         c.RA = 0x801B5A08u;
-        SoTN.UnkPolyFunc2_np3(c, m);
+        SoTN_np3.UnkPolyFunc2_np3(c, m);
         c.A0 = 0x80070000u;
         c.A0 = m.ReadU32((c.A0 + 0x3088u));
         c.V0 = m.ReadU32((c.A0 + 0x4u));
@@ -4556,7 +4556,7 @@ public static partial class RandoPatch
         c.V0 = c.V0 + 0x2000u;
         m.WriteU32((c.V1 + 0x10u), c.V0);
         c.RA = 0x801B5B1Cu;
-        SoTN.UnkPrimHelper_np3(c, m);
+        SoTN_np3.UnkPrimHelper_np3(c, m);
         c.A2 = c.SP + 0x10u;
         c.V0 = m.ReadU32(c.S0);
         c.A3 = 0u + 0u;
@@ -4596,7 +4596,7 @@ public static partial class RandoPatch
         c.A0 = c.S3 + 0u;
         c.A1 = c.S3 + 0x1780u;
         c.RA = 0x801B5BA0u;
-        SoTN.AllocEntity_np3(c, m);
+        SoTN_np3.AllocEntity_np3(c, m);
         c.S0 = c.V0 + 0u;
         if (c.S0 == 0u)
         {
@@ -4608,7 +4608,7 @@ public static partial class RandoPatch
         c.A1 = c.S1 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801B5BBCu;
-        SoTN.CreateEntityFromEntity_np3(c, m);
+        SoTN_np3.CreateEntityFromEntity_np3(c, m);
         c.V0 = 0u | 0x0011u;
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
         c.V0 = m.ReadU16((c.S1 + 0x24u));
@@ -4620,7 +4620,7 @@ public static partial class RandoPatch
     L801B5BDC:;
         c.A1 = c.S3 + 0x1780u;
         c.RA = 0x801B5BE4u;
-        SoTN.AllocEntity_np3(c, m);
+        SoTN_np3.AllocEntity_np3(c, m);
         c.S0 = c.V0 + 0u;
         if (c.S0 == 0u)
         {
@@ -4632,7 +4632,7 @@ public static partial class RandoPatch
         c.A1 = c.S1 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801B5C00u;
-        SoTN.CreateEntityFromEntity_np3(c, m);
+        SoTN_np3.CreateEntityFromEntity_np3(c, m);
         c.RA = 0x801B5C08u;
         Dispatcher.Call(c, m, 0x801B90BCu);
         c.V0 = c.V0 & 0x0003u;
@@ -4657,7 +4657,7 @@ public static partial class RandoPatch
     L801B5C30:;
         c.A0 = c.S1 + 0u;
         c.RA = 0x801B5C38u;
-        SoTN.DestroyEntity_np3(c, m);
+        SoTN_np3.DestroyEntity_np3(c, m);
     L801B5C38:;
         c.RA = m.ReadU32((c.SP + 0x54u));
         c.S4 = m.ReadU32((c.SP + 0x50u));
@@ -4717,7 +4717,7 @@ public static partial class RandoPatch
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0xB78u;
         c.RA = 0x801D5B20u;
-        SoTN.InitializeEntity_no3(c, m);
+        SoTN_no3.InitializeEntity_no3(c, m);
         c.V0 = m.ReadU16((c.S1 + 0x30u));
         if (c.V0 == 0u)
         {
@@ -4847,7 +4847,7 @@ public static partial class RandoPatch
         m.WriteU16((c.S1 + 0x2Cu), (ushort)c.V0);
     L801D5C88:;
         c.RA = 0x801D5C90u;
-        SoTN.BoneScimitarAttackCheck_no3(c, m);
+        SoTN_no3.BoneScimitarAttackCheck_no3(c, m);
         goto L801D6138;
     L801D5C98:;
         c.A0 = 0x80180000u;
@@ -4891,7 +4891,7 @@ public static partial class RandoPatch
         c.V0 = c.S0 & 0x00FFu;
         c.A0 = 0u | 0x066Du;
         c.RA = 0x801D5D10u;
-        SoTN.PlaySfxPositional_no3(c, m);
+        SoTN_no3.PlaySfxPositional_no3(c, m);
         c.V0 = c.S0 & 0x00FFu;
     L801D5D14:;
         if (c.V0 != 0u)
@@ -4900,7 +4900,7 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0003u;
         c.RA = 0x801D5D24u;
-        SoTN.SetStep_no3(c, m);
+        SoTN_no3.SetStep_no3(c, m);
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0x3C18u;
         c.V1 = m.ReadU8((c.S1 + 0x84u));
@@ -4922,7 +4922,7 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0006u;
         c.RA = 0x801D5D6Cu;
-        SoTN.SetStep_no3(c, m);
+        SoTN_no3.SetStep_no3(c, m);
         goto L801D6138;
     L801D5D74:;
         c.V1 = m.ReadU16((c.S1 + 0x2Eu));
@@ -4962,7 +4962,7 @@ public static partial class RandoPatch
         }
         c.S0 = m.ReadU8((c.S1 + 0x80u));
         c.RA = 0x801D5DD8u;
-        SoTN.Random_no3(c, m);
+        SoTN_no3.Random_no3(c, m);
         c.V0 = c.V0 & 0x0003u;
         if (c.V0 != 0u)
         {
@@ -5021,7 +5021,7 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0003u;
         c.RA = 0x801D5E7Cu;
-        SoTN.SetStep_no3(c, m);
+        SoTN_no3.SetStep_no3(c, m);
         goto L801D6138;
     L801D5E84:;
         c.RA = 0x801D5E8Cu;
@@ -5032,7 +5032,7 @@ public static partial class RandoPatch
         c.V0 = c.V0 ^ 0x0001u;
         m.WriteU16((c.S1 + 0x14u), (ushort)c.V0);
         c.RA = 0x801D5EA4u;
-        SoTN.UnkCollisionFunc2_no3(c, m);
+        SoTN_no3.UnkCollisionFunc2_no3(c, m);
         c.V0 = m.ReadU32((c.S1 + 0x8u));
         c.V1 = m.ReadU16((c.S1 + 0x14u));
         c.V0 = c.V0 >> 31;
@@ -5120,7 +5120,7 @@ public static partial class RandoPatch
             goto L801D6138;
         }
         c.RA = 0x801D5FB4u;
-        SoTN.GetDistanceToPlayerY_no3(c, m);
+        SoTN_no3.GetDistanceToPlayerY_no3(c, m);
         c.V0 = (int)c.V0 < 32 ? 1u : 0u;
         if (c.V0 == 0u)
         {
@@ -5128,7 +5128,7 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0004u;
         c.RA = 0x801D5FC8u;
-        SoTN.SetStep_no3(c, m);
+        SoTN_no3.SetStep_no3(c, m);
         goto L801D6138;
     L801D5FD0:;
         c.A0 = 0u | 0x062Bu;
@@ -5155,7 +5155,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x0047u;
         c.A1 = c.S0 + 0u;
         c.RA = 0x801D6014u;
-        SoTN.CreateEntityFromCurrentEntity_no3(c, m);
+        SoTN_no3.CreateEntityFromCurrentEntity_no3(c, m);
         c.V0 = m.ReadU16((c.S1 + 0x14u));
         m.WriteU16((c.S0 + 0x30u), (ushort)c.S2);
         m.WriteU16((c.S0 + 0x14u), (ushort)c.V0);
@@ -5219,7 +5219,7 @@ public static partial class RandoPatch
         c.A1 = c.S1 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x801D60ECu;
-        SoTN.CreateEntityFromEntity_no3(c, m);
+        SoTN_no3.CreateEntityFromEntity_no3(c, m);
         c.V0 = m.ReadU16((c.S1 + 0x30u));
         c.V0 = c.V0 & 0x0001u;
         if (c.V0 != 0u)
@@ -5247,7 +5247,7 @@ public static partial class RandoPatch
     L801D6130:;
         c.A0 = c.S1 + 0u;
         c.RA = 0x801D6138u;
-        SoTN.DestroyEntity_no3(c, m);
+        SoTN_no3.DestroyEntity_no3(c, m);
     L801D6138:;
         c.RA = m.ReadU32((c.SP + 0x24u));
         c.S4 = m.ReadU32((c.SP + 0x20u));
@@ -5297,13 +5297,13 @@ public static partial class RandoPatch
         c.A0 = c.A0 + 0x458u;
         c.S0 = 0u | 0x00C4u;
         c.RA = 0x801943ECu;
-        SoTN.InitializeEntity_rbo0(c, m);
+        SoTN_rbo0.InitializeEntity_rbo0(c, m);
         c.S2 = 0x80070000u;
         c.S2 = c.S2 + 0x6E98u;
         c.A0 = 0u | 0x001Bu;
         c.A1 = c.S2 + 0u;
         c.RA = 0x80194400u;
-        SoTN.CreateEntityFromCurrentEntity_rbo0(c, m);
+        SoTN_rbo0.CreateEntityFromCurrentEntity_rbo0(c, m);
         c.S2 = c.S2 + 0x5E0u;
         c.A0 = 0u | 0x001Cu;
         c.S1 = 0x80070000u;
@@ -5320,7 +5320,7 @@ public static partial class RandoPatch
         m.WriteU16((c.At + 0x6E9Eu), (ushort)c.V0);
         c.A1 = c.S2 + 0u;
         c.RA = 0x80194444u;
-        SoTN.CreateEntityFromCurrentEntity_rbo0(c, m);
+        SoTN_rbo0.CreateEntityFromCurrentEntity_rbo0(c, m);
         c.A0 = 0u | 0x001Du;
         c.V0 = 0u | 0x00B8u;
         c.A2 = m.ReadU16(c.S1);
@@ -5334,7 +5334,7 @@ public static partial class RandoPatch
         m.WriteU16((c.At + 0x747Eu), (ushort)c.V1);
         c.A1 = c.S2 + 0x5E0u;
         c.RA = 0x80194478u;
-        SoTN.CreateEntityFromCurrentEntity_rbo0(c, m);
+        SoTN_rbo0.CreateEntityFromCurrentEntity_rbo0(c, m);
         c.V0 = 0u | 0x0148u;
         c.V1 = m.ReadU16(c.S1);
         c.A0 = 0x80070000u;
@@ -5452,7 +5452,7 @@ public static partial class RandoPatch
         c.A0 = c.A0 - 0x56A8u;
         c.A1 = c.A0 + 0x1780u;
         c.RA = 0x80194614u;
-        SoTN.AllocEntity_rbo0(c, m);
+        SoTN_rbo0.AllocEntity_rbo0(c, m);
         c.S2 = c.V0 + 0u;
         if (c.S2 == 0u)
         {
@@ -5463,7 +5463,7 @@ public static partial class RandoPatch
         c.A1 = c.S3 + 0u;
         c.A2 = c.S2 + 0u;
         c.RA = 0x8019462Cu;
-        SoTN.CreateEntityFromEntity_rbo0(c, m);
+        SoTN_rbo0.CreateEntityFromEntity_rbo0(c, m);
         c.V1 = 0x80070000u;
         c.V1 = m.ReadU16((c.V1 + 0x308Eu));
         c.V0 = 0u | 0x0001u;
@@ -5569,7 +5569,7 @@ public static partial class RandoPatch
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0x458u;
         c.RA = 0x801A597Cu;
-        SoTN.InitializeEntity_rbo0(c, m);
+        SoTN_rbo0.InitializeEntity_rbo0(c, m);
         c.A0 = 0u | 0x0004u;
         c.V0 = 0u | 0x0002u;
         m.WriteU16((c.S2 + 0x54u), (ushort)c.V0);
@@ -5647,7 +5647,7 @@ public static partial class RandoPatch
     L801A5A88:;
         c.A0 = c.S1 + 0u;
         c.RA = 0x801A5A90u;
-        SoTN.UnkPolyFunc2_rbo0(c, m);
+        SoTN_rbo0.UnkPolyFunc2_rbo0(c, m);
         c.V1 = m.ReadU32(c.S1);
         c.V0 = 0u | 0x001Au;
         m.WriteU16((c.S1 + 0x1Au), (ushort)c.V0);
@@ -5764,13 +5764,13 @@ public static partial class RandoPatch
     L801A5C20:;
         c.A0 = 0u | 0x0200u;
         c.RA = 0x801A5C28u;
-        SoTN.SetGeomScreen(c, m);
+        SoTN_main.SetGeomScreen(c, m);
         c.A0 = (uint)(short)m.ReadU16((c.S2 + 0x2u));
         c.A1 = (uint)(short)m.ReadU16((c.S2 + 0x6u));
         c.S6 = 0u + 0u;
         m.WriteU32((c.SP + 0xA0u), 0u);
         c.RA = 0x801A5C3Cu;
-        SoTN.SetGeomOffset(c, m);
+        SoTN_main.SetGeomOffset(c, m);
         c.V0 = (uint)(short)m.ReadU16((c.S2 + 0x88u));
         c.S1 = m.ReadU32((c.S2 + 0x7Cu));
         c.V0 = c.V0 + 0x1u;
@@ -5849,7 +5849,7 @@ public static partial class RandoPatch
         c.A1 = c.S3 + 0u;
         m.WriteU16((c.SP + 0x5Cu), (ushort)c.V0);
         c.RA = 0x801A5D4Cu;
-        SoTN.RotMatrix(c, m);
+        SoTN_main.RotMatrix(c, m);
         c.A0 = c.S3 + 0u;
         c.A1 = m.ReadU32((c.SP + 0xA8u));
         c.V0 = 0u | 0x0200u;
@@ -5857,13 +5857,13 @@ public static partial class RandoPatch
         m.WriteU32((c.SP + 0x64u), 0u);
         m.WriteU32((c.SP + 0x68u), c.V0);
         c.RA = 0x801A5D68u;
-        SoTN.TransMatrix(c, m);
+        SoTN_main.TransMatrix(c, m);
         c.A0 = c.S3 + 0u;
         c.RA = 0x801A5D70u;
-        SoTN.SetRotMatrix(c, m);
+        SoTN_main.SetRotMatrix(c, m);
         c.A0 = c.S3 + 0u;
         c.RA = 0x801A5D78u;
-        SoTN.SetTransMatrix(c, m);
+        SoTN_main.SetTransMatrix(c, m);
         c.A0 = c.SP + 0x90u;
         c.A1 = c.SP + 0x50u;
         c.A2 = c.FP + 0u;
@@ -5872,13 +5872,13 @@ public static partial class RandoPatch
         m.WriteU16((c.SP + 0x92u), (ushort)0u);
         m.WriteU16((c.SP + 0x94u), (ushort)0u);
         c.RA = 0x801A5D98u;
-        SoTN.RotTransPers(c, m);
+        SoTN_main.RotTransPers(c, m);
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0x19B4u;
         c.A1 = c.S3 + 0u;
         c.S0 = c.V0 + 0u;
         c.RA = 0x801A5DACu;
-        SoTN.RotMatrix(c, m);
+        SoTN_main.RotMatrix(c, m);
         c.A0 = c.S3 + 0u;
         c.S0 = c.S0 << 16;
         c.V0 = (uint)(short)m.ReadU16((c.SP + 0x50u));
@@ -5893,7 +5893,7 @@ public static partial class RandoPatch
         c.V0 = c.V0 - c.V1;
         m.WriteU32((c.SP + 0x64u), c.V0);
         c.RA = 0x801A5DE4u;
-        SoTN.TransMatrix(c, m);
+        SoTN_main.TransMatrix(c, m);
         c.V0 = m.ReadU32(c.S1);
         c.V0 = (uint)(short)m.ReadU16((c.V0 + 0x20u));
         c.A0 = c.S3 + 0u;
@@ -5905,13 +5905,13 @@ public static partial class RandoPatch
         m.WriteU32((c.SP + 0x68u), c.V0);
         m.WriteU32((c.SP + 0x64u), c.V1);
         c.RA = 0x801A5E14u;
-        SoTN.ScaleMatrix(c, m);
+        SoTN_main.ScaleMatrix(c, m);
         c.A0 = c.S3 + 0u;
         c.RA = 0x801A5E1Cu;
-        SoTN.SetRotMatrix(c, m);
+        SoTN_main.SetRotMatrix(c, m);
         c.A0 = c.S3 + 0u;
         c.RA = 0x801A5E24u;
-        SoTN.SetTransMatrix(c, m);
+        SoTN_main.SetTransMatrix(c, m);
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0x1968u;
         c.A1 = 0x80180000u;
@@ -5931,7 +5931,7 @@ public static partial class RandoPatch
         m.WriteU32((c.SP + 0x20u), c.FP);
         m.WriteU32((c.SP + 0x24u), c.S7);
         c.RA = 0x801A5E70u;
-        SoTN.RotTransPers4(c, m);
+        SoTN_main.RotTransPers4(c, m);
         c.V1 = m.ReadU32(c.S1);
         c.V0 = m.ReadU16((c.V1 + 0x22u));
         c.V0 = c.V0 - 0x10u;
@@ -5985,7 +5985,7 @@ public static partial class RandoPatch
         goto L801A6000;
     L801A5F38:;
         c.RA = 0x801A5F40u;
-        SoTN.MoveEntity_rbo0(c, m);
+        SoTN_rbo0.MoveEntity_rbo0(c, m);
         c.A2 = c.SP + 0x28u;
         c.A3 = 0u + 0u;
         c.A0 = (uint)(short)m.ReadU16((c.S2 + 0x2u));
@@ -6382,7 +6382,7 @@ public static partial class RandoPatch
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0xAE8u;
         c.RA = 0x801CCE64u;
-        SoTN.InitializeEntity_no0(c, m);
+        SoTN_no0.InitializeEntity_no0(c, m);
         c.V0 = c.S0 << 1;
         c.V0 = c.V0 + c.S0;
         c.V0 = c.V0 << 2;
@@ -6474,7 +6474,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x001Au;
         c.A1 = c.S1 + 0u;
         c.RA = 0x801CCF94u;
-        SoTN.CreateEntityFromCurrentEntity_no0(c, m);
+        SoTN_no0.CreateEntityFromCurrentEntity_no0(c, m);
         m.WriteU16((c.S1 + 0x30u), (ushort)c.S0);
         c.S0 = c.S0 + 0x1u;
         c.V0 = c.S0 & 0xFFFFu;
@@ -6488,14 +6488,14 @@ public static partial class RandoPatch
         c.A0 = c.S2 + 0u;
         c.A1 = c.S3 + 0u;
         c.RA = 0x801CCFB8u;
-        SoTN.UpdateClockHands(c, m);
+        SoTN_no0.UpdateClockHands(c, m);
         c.S1 = c.S2 + 0x524u;
         c.S0 = 0u + 0u;
     L801CCFC0:;
         c.A0 = 0u | 0x001Bu;
         c.A1 = c.S1 + 0u;
         c.RA = 0x801CCFCCu;
-        SoTN.CreateEntityFromCurrentEntity_no0(c, m);
+        SoTN_no0.CreateEntityFromCurrentEntity_no0(c, m);
         m.WriteU16((c.S1 + 0x30u), (ushort)c.S0);
         c.S0 = c.S0 + 0x1u;
         c.V0 = c.S0 & 0xFFFFu;
@@ -6511,11 +6511,11 @@ public static partial class RandoPatch
         c.A1 = m.ReadU32((c.S3 + 0x2D0u));
         c.S0 = 0u + 0u;
         c.RA = 0x801CCFF8u;
-        SoTN.UpdateBirdcages(c, m);
+        SoTN_no0.UpdateBirdcages(c, m);
         c.A0 = 0u | 0x0020u;
         c.A1 = c.S2 + 0x69Cu;
         c.RA = 0x801CD004u;
-        SoTN.CreateEntityFromCurrentEntity_no0(c, m);
+        SoTN_no0.CreateEntityFromCurrentEntity_no0(c, m);
         c.V0 = 0xFFFF8001u;
         m.WriteU16((c.S2 + 0x6F0u), (ushort)c.V0);
         c.V0 = 0u | 0x0017u;
@@ -6535,7 +6535,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x001Cu;
         c.A1 = c.S1 + 0u;
         c.RA = 0x801CD04Cu;
-        SoTN.CreateEntityFromCurrentEntity_no0(c, m);
+        SoTN_no0.CreateEntityFromCurrentEntity_no0(c, m);
         m.WriteU16((c.S1 + 0x30u), (ushort)c.S0);
         c.S0 = c.S0 + 0x1u;
         c.V0 = c.S0 & 0xFFFFu;
@@ -6552,7 +6552,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x001Du;
         c.A1 = c.S1 + 0u;
         c.RA = 0x801CD078u;
-        SoTN.CreateEntityFromCurrentEntity_no0(c, m);
+        SoTN_no0.CreateEntityFromCurrentEntity_no0(c, m);
         m.WriteU16((c.S1 + 0x30u), (ushort)c.S0);
         c.S0 = c.S0 + 0x1u;
         c.V0 = c.S0 & 0xFFFFu;
@@ -6569,7 +6569,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x001Eu;
         c.A1 = c.S1 + 0u;
         c.RA = 0x801CD0A4u;
-        SoTN.CreateEntityFromCurrentEntity_no0(c, m);
+        SoTN_no0.CreateEntityFromCurrentEntity_no0(c, m);
         m.WriteU16((c.S1 + 0x30u), (ushort)c.S0);
         c.S0 = c.S0 + 0x1u;
         c.V0 = c.S0 & 0xFFFFu;
@@ -6598,7 +6598,7 @@ public static partial class RandoPatch
     L801CD0EC:;
         c.A1 = c.S3 + 0u;
         c.RA = 0x801CD0F4u;
-        SoTN.UpdateClockHands(c, m);
+        SoTN_no0.UpdateClockHands(c, m);
         c.V0 = m.ReadU32((c.S3 + 0x2D4u));
         if (c.V0 != 0u)
         {
@@ -6642,7 +6642,7 @@ public static partial class RandoPatch
         c.A1 = m.ReadU32((c.S3 + 0x2D0u));
         c.A0 = c.S2 + 0u;
         c.RA = 0x801CD17Cu;
-        SoTN.UpdateBirdcages(c, m);
+        SoTN_no0.UpdateBirdcages(c, m);
         c.V0 = 0x80040000u;
         c.V0 = m.ReadU8((c.V0 - 0x4214u));
         if (c.V0 != 0u)
@@ -7005,7 +7005,7 @@ public static partial class RandoPatch
     L801CD5C0:;
         c.A0 = c.S2 + 0u;
         c.RA = 0x801CD5C8u;
-        SoTN.func_us_801CCAAC(c, m);
+        SoTN_no0.func_us_801CCAAC(c, m);
         c.V0 = m.ReadU16((c.S2 + 0x88u));
         c.V0 = c.V0 < 0x00000200u ? 1u : 0u;
         if (c.V0 != 0u)
@@ -7043,7 +7043,7 @@ public static partial class RandoPatch
         Dispatcher.Call(c, m, c.V0);
         c.A0 = 0u | 0x0003u;
         c.RA = 0x801CD634u;
-        SoTN.SetStep_no0(c, m);
+        SoTN_no0.SetStep_no0(c, m);
         c.V0 = 0u | 0x0140u;
         m.WriteU16((c.S2 + 0x88u), (ushort)c.V0);
         goto L801CD730;
@@ -7105,7 +7105,7 @@ public static partial class RandoPatch
     L801CD70C:;
         c.A0 = c.S2 + 0u;
         c.RA = 0x801CD714u;
-        SoTN.func_us_801CCAAC(c, m);
+        SoTN_no0.func_us_801CCAAC(c, m);
         c.V0 = m.ReadU16((c.S2 + 0x88u));
         c.V0 = c.V0 < 0x00000200u ? 1u : 0u;
         if (c.V0 != 0u)
@@ -7116,7 +7116,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x0001u;
     L801CD728:;
         c.RA = 0x801CD730u;
-        SoTN.SetStep_no0(c, m);
+        SoTN_no0.SetStep_no0(c, m);
     L801CD730:;
         c.RA = m.ReadU32((c.SP + 0x20u));
         c.S3 = m.ReadU32((c.SP + 0x1Cu));
@@ -7298,7 +7298,7 @@ public static partial class RandoPatch
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0xAB0u;
         c.RA = 0x801C100Cu;
-        SoTN.RNO0_InitializeEntity(c, m);
+        SoTN_rno0.RNO0_InitializeEntity(c, m);
         c.V0 = c.S0 << 1;
         c.V0 = c.V0 + c.S0;
         c.V0 = c.V0 << 2;
@@ -7388,7 +7388,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x001Au;
         c.A1 = c.S1 + 0u;
         c.RA = 0x801C1138u;
-        SoTN.RNO0_CreateEntityFromCurrentEntity(c, m);
+        SoTN_rno0.RNO0_CreateEntityFromCurrentEntity(c, m);
         m.WriteU16((c.S1 + 0x30u), (ushort)c.S0);
         c.S0 = c.S0 + 0x1u;
         c.V0 = c.S0 & 0xFFFFu;
@@ -7402,14 +7402,14 @@ public static partial class RandoPatch
         c.A0 = c.S2 + 0u;
         c.A1 = c.S3 + 0u;
         c.RA = 0x801C115Cu;
-        SoTN.RNO0_UpdateClockHands(c, m);
+        SoTN_rno0.RNO0_UpdateClockHands(c, m);
         c.S1 = c.S2 + 0x524u;
         c.S0 = 0u + 0u;
     L801C1164:;
         c.A0 = 0u | 0x001Bu;
         c.A1 = c.S1 + 0u;
         c.RA = 0x801C1170u;
-        SoTN.RNO0_CreateEntityFromCurrentEntity(c, m);
+        SoTN_rno0.RNO0_CreateEntityFromCurrentEntity(c, m);
         m.WriteU16((c.S1 + 0x30u), (ushort)c.S0);
         c.S0 = c.S0 + 0x1u;
         c.V0 = c.S0 & 0xFFFFu;
@@ -7425,11 +7425,11 @@ public static partial class RandoPatch
         c.A1 = m.ReadU32((c.S3 + 0x2D0u));
         c.S0 = 0u + 0u;
         c.RA = 0x801C119Cu;
-        SoTN.RNO0_UpdateBirdcages(c, m);
+        SoTN_rno0.RNO0_UpdateBirdcages(c, m);
         c.A0 = 0u | 0x0020u;
         c.A1 = c.S2 + 0x69Cu;
         c.RA = 0x801C11A8u;
-        SoTN.RNO0_CreateEntityFromCurrentEntity(c, m);
+        SoTN_rno0.RNO0_CreateEntityFromCurrentEntity(c, m);
         c.V0 = 0xFFFF8002u;
         m.WriteU16((c.S2 + 0x6F0u), (ushort)c.V0);
         c.V0 = 0u | 0x0017u;
@@ -7449,7 +7449,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x001Cu;
         c.A1 = c.S1 + 0u;
         c.RA = 0x801C11F0u;
-        SoTN.RNO0_CreateEntityFromCurrentEntity(c, m);
+        SoTN_rno0.RNO0_CreateEntityFromCurrentEntity(c, m);
         m.WriteU16((c.S1 + 0x30u), (ushort)c.S0);
         c.S0 = c.S0 + 0x1u;
         c.V0 = c.S0 & 0xFFFFu;
@@ -7466,7 +7466,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x001Du;
         c.A1 = c.S1 + 0u;
         c.RA = 0x801C121Cu;
-        SoTN.RNO0_CreateEntityFromCurrentEntity(c, m);
+        SoTN_rno0.RNO0_CreateEntityFromCurrentEntity(c, m);
         m.WriteU16((c.S1 + 0x30u), (ushort)c.S0);
         c.S0 = c.S0 + 0x1u;
         c.V0 = c.S0 & 0xFFFFu;
@@ -7483,7 +7483,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x001Eu;
         c.A1 = c.S1 + 0u;
         c.RA = 0x801C1248u;
-        SoTN.RNO0_CreateEntityFromCurrentEntity(c, m);
+        SoTN_rno0.RNO0_CreateEntityFromCurrentEntity(c, m);
         m.WriteU16((c.S1 + 0x30u), (ushort)c.S0);
         c.S0 = c.S0 + 0x1u;
         c.V0 = c.S0 & 0xFFFFu;
@@ -7512,7 +7512,7 @@ public static partial class RandoPatch
     L801C1290:;
         c.A1 = c.S3 + 0u;
         c.RA = 0x801C1298u;
-        SoTN.RNO0_UpdateClockHands(c, m);
+        SoTN_rno0.RNO0_UpdateClockHands(c, m);
         c.V0 = m.ReadU32((c.S3 + 0x2D4u));
         if (c.V0 != 0u)
         {
@@ -7556,7 +7556,7 @@ public static partial class RandoPatch
         c.A1 = m.ReadU32((c.S3 + 0x2D0u));
         c.A0 = c.S2 + 0u;
         c.RA = 0x801C1320u;
-        SoTN.RNO0_UpdateBirdcages(c, m);
+        SoTN_rno0.RNO0_UpdateBirdcages(c, m);
         c.V0 = 0x80040000u;
         c.V0 = m.ReadU8((c.V0 - 0x4130u));
         if (c.V0 != 0u)
@@ -7803,7 +7803,7 @@ public static partial class RandoPatch
     L801C1620:;
         c.A0 = c.S2 + 0u;
         c.RA = 0x801C1628u;
-        SoTN.func_801C0C54(c, m);
+        SoTN_rno0.func_801C0C54(c, m);
         c.V0 = m.ReadU16((c.S2 + 0x88u));
         c.V0 = c.V0 < 0x00000200u ? 1u : 0u;
         if (c.V0 != 0u)
@@ -7841,7 +7841,7 @@ public static partial class RandoPatch
         Dispatcher.Call(c, m, c.V0);
         c.A0 = 0u | 0x0003u;
         c.RA = 0x801C1694u;
-        SoTN.func_801BB37C(c, m);
+        SoTN_rno0.func_801BB37C(c, m);
         c.V0 = 0u | 0x0140u;
         m.WriteU16((c.S2 + 0x88u), (ushort)c.V0);
         goto L801C1790;
@@ -7903,7 +7903,7 @@ public static partial class RandoPatch
     L801C176C:;
         c.A0 = c.S2 + 0u;
         c.RA = 0x801C1774u;
-        SoTN.func_801C0C54(c, m);
+        SoTN_rno0.func_801C0C54(c, m);
         c.V0 = m.ReadU16((c.S2 + 0x88u));
         c.V0 = c.V0 < 0x00000200u ? 1u : 0u;
         if (c.V0 != 0u)
@@ -7914,7 +7914,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x0001u;
     L801C1788:;
         c.RA = 0x801C1790u;
-        SoTN.func_801BB37C(c, m);
+        SoTN_rno0.func_801BB37C(c, m);
     L801C1790:;
         c.RA = m.ReadU32((c.SP + 0x20u));
         c.S3 = m.ReadU32((c.SP + 0x1Cu));
@@ -7960,7 +7960,7 @@ public static partial class RandoPatch
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0x444u;
         c.RA = 0x80192B90u;
-        SoTN.InitializeEntity_rbo3(c, m);
+        SoTN_rbo3.InitializeEntity_rbo3(c, m);
     L80192B90:;
         c.V1 = 0x80070000u;
         c.V1 = (uint)(short)m.ReadU16((c.V1 + 0x33DAu));
@@ -8041,7 +8041,7 @@ public static partial class RandoPatch
         c.V0 = 0u | 0x0080u;
         c.S3 = c.V0 - c.V1;
         c.RA = 0x80192CA4u;
-        SoTN.AllocEntity_rbo3(c, m);
+        SoTN_rbo3.AllocEntity_rbo3(c, m);
         c.S0 = c.V0 + 0u;
         if (c.S0 == 0u)
         {
@@ -8052,7 +8052,7 @@ public static partial class RandoPatch
         c.A1 = c.S2 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x80192CBCu;
-        SoTN.CreateEntityFromEntity_rbo3(c, m);
+        SoTN_rbo3.CreateEntityFromEntity_rbo3(c, m);
         //c.V0 = 0u | 0x0011u;
         c.V0 = 0u | m.ReadU16(0x80192CBC);  // Allow Changing reward Index
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
@@ -8137,7 +8137,7 @@ public static partial class RandoPatch
         c.A0 = c.A0 + 0x490u;
         c.S0 = c.S2 + 0xBCu;
         c.RA = 0x801987F4u;
-        SoTN.RBO4_InitializeEntity(c, m);
+        SoTN_rbo4.RBO4_InitializeEntity(c, m);
         c.S1 = 0u | 0x0001u;
         m.WriteU16((c.S2 + 0x54u), (ushort)0u);
         m.WriteU16((c.S2 + 0x56u), (ushort)0u);
@@ -8146,7 +8146,7 @@ public static partial class RandoPatch
         c.A1 = c.S2 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x80198810u;
-        SoTN.RBO4_CreateEntityFromEntity(c, m);
+        SoTN_rbo4.RBO4_CreateEntityFromEntity(c, m);
         c.V0 = c.S1 + 0x100u;
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
         c.S0 = c.S0 + 0xBCu;
@@ -8154,7 +8154,7 @@ public static partial class RandoPatch
         c.A1 = c.S2 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x8019882Cu;
-        SoTN.RBO4_CreateEntityFromEntity(c, m);
+        SoTN_rbo4.RBO4_CreateEntityFromEntity(c, m);
         c.V0 = c.S1 + 0u;
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
         c.S1 = c.S1 + 0x1u;
@@ -8245,7 +8245,7 @@ public static partial class RandoPatch
         c.V0 = 0u | 0x0080u;
         c.S3 = c.V0 - c.V1;
         c.RA = 0x80198958u;
-        SoTN.RBO4_AllocEntity(c, m);
+        SoTN_rbo4.RBO4_AllocEntity(c, m);
         c.S0 = c.V0 + 0u;
         if (c.S0 == 0u)
         {
@@ -8256,7 +8256,7 @@ public static partial class RandoPatch
         c.A1 = c.S2 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x80198970u;
-        SoTN.RBO4_CreateEntityFromEntity(c, m);
+        SoTN_rbo4.RBO4_CreateEntityFromEntity(c, m);
         //c.V0 = 0u | 0x0012u;
         c.V0 = 0u | m.ReadU16(0x80198970);      // Allow Reward Index Change
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
@@ -8340,7 +8340,7 @@ public static partial class RandoPatch
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0x3E4u;
         c.RA = 0x80193EE0u;
-        SoTN.RBO7_InitializeEntity(c, m);
+        SoTN_rbo7.RBO7_InitializeEntity(c, m);
     L80193EE0:;
         c.V1 = 0x80070000u;
         c.V1 = (uint)(short)m.ReadU16((c.V1 + 0x33DAu));
@@ -8421,7 +8421,7 @@ public static partial class RandoPatch
         c.V0 = 0u | 0x0180u;
         c.S3 = c.V0 - c.V1;
         c.RA = 0x80193FF4u;
-        SoTN.RBO7_AllocEntity(c, m);
+        SoTN_rbo7.RBO7_AllocEntity(c, m);
         c.S0 = c.V0 + 0u;
         if (c.S0 == 0u)
         {
@@ -8432,7 +8432,7 @@ public static partial class RandoPatch
         c.A1 = c.S2 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x8019400Cu;
-        SoTN.RBO7_CreateEntityFromEntity(c, m);
+        SoTN_rbo7.RBO7_CreateEntityFromEntity(c, m);
         //c.V0 = 0u | 0x0013u;
         c.V0 = 0u | m.ReadU16(0x8019400C);  // allow reward id change
         m.WriteU16((c.S0 + 0x30u), (ushort)c.V0);
@@ -8518,7 +8518,7 @@ public static partial class RandoPatch
         c.A0 = 0x80180000u;
         c.A0 = c.A0 + 0x458u;
         c.RA = 0x8019F504u;
-        SoTN.RBO2_InitializeEntity(c, m);
+        SoTN_rbo2.RBO2_InitializeEntity(c, m);
         c.V0 = m.ReadU32((c.S2 + 0x34u));
         c.V1 = 0x00010000u;
         c.V0 = c.V0 | c.V1;
@@ -8671,7 +8671,7 @@ public static partial class RandoPatch
         c.V0 = 0u | 0x0080u;
         c.S3 = c.V0 - c.V1;
         c.RA = 0x8019F710u;
-        SoTN.RBO2_AllocEntity(c, m);
+        SoTN_rbo2.RBO2_AllocEntity(c, m);
         c.S0 = c.V0 + 0u;
         if (c.S0 == 0u)
         {
@@ -8682,7 +8682,7 @@ public static partial class RandoPatch
         c.A1 = c.S2 + 0u;
         c.A2 = c.S0 + 0u;
         c.RA = 0x8019F728u;
-        SoTN.RBO2_CreateEntityFromEntity(c, m);
+        SoTN_rbo2.RBO2_CreateEntityFromEntity(c, m);
         //c.V0 = 0u | 0x0015u;
         c.V0 = 0u | m.ReadU16(0x8019F728);  // Allow Reward Index Change
         m.WriteU16((c.S0 + 0x2u), (ushort)c.S1);
@@ -8731,13 +8731,13 @@ public static partial class RandoPatch
         c.A0 = 0x801A0000u;
         c.A0 = c.A0 - 0x5258u;
         c.RA = 0x8019F7D4u;
-        SoTN.FntPrint(c, m);
+        SoTN_main.FntPrint(c, m);
         c.A1 = 0x80180000u;
         c.A1 = m.ReadU32((c.A1 + 0xB5Cu));
         c.A0 = 0x801A0000u;
         c.A0 = c.A0 - 0x5248u;
         c.RA = 0x8019F7ECu;
-        SoTN.FntPrint(c, m);
+        SoTN_main.FntPrint(c, m);
         c.RA = m.ReadU32((c.SP + 0x20u));
         c.S3 = m.ReadU32((c.SP + 0x1Cu));
         c.S2 = m.ReadU32((c.SP + 0x18u));
@@ -9031,7 +9031,7 @@ public static partial class RandoPatch
         c.A0 = c.A0 - 0x80u;
         c.A0 = c.A0 & 0x00FFu;
         c.RA = 0x800F5FC0u;
-        SoTN.func_800F548C(c, m);
+        SoTN_dra.func_800F548C(c, m);
         c.A0 = c.S6 + 0u;
         c.A1 = c.S5 + 0x38u;
         c.A2 = c.S2 + 0u;
@@ -9060,7 +9060,7 @@ public static partial class RandoPatch
         c.A0 = c.A0 + 0x3u;
         c.A0 = c.A0 & 0x00FFu;
         c.RA = 0x800F6018u;
-        SoTN.func_800F548C(c, m);
+        SoTN_dra.func_800F548C(c, m);
         c.A0 = c.S6 + 0u;
         c.A1 = c.S5 + 0x38u;
         c.A2 = c.S2 + 0u;
@@ -9083,7 +9083,7 @@ public static partial class RandoPatch
         m.WriteU32((c.SP + 0x28u), 0u);
         m.WriteU32((c.SP + 0x2Cu), 0u);
         c.RA = 0x800F606Cu;
-        SoTN.MenuDrawSprite(c, m);
+        SoTN_dra.MenuDrawSprite(c, m);
     L800F606C:;
         c.T0 = 0u + 0u;
         c.V0 = m.ReadU8(c.S4);
@@ -9164,7 +9164,7 @@ public static partial class RandoPatch
         c.V1 = c.V1 < 0x00000001u ? 1u : 0u;
         m.WriteU32((c.SP + 0x24u), c.V1);
         c.RA = 0x800F617Cu;
-        SoTN.MenuDrawSprite(c, m);
+        SoTN_dra.MenuDrawSprite(c, m);
     L800F617C:;
         c.S1 = c.S1 + 0x1u;
         c.S3 = c.S3 + 0x1u;
@@ -9202,7 +9202,7 @@ public static partial class RandoPatch
         c.A1 = c.A1 | 0x0008u;
         c.A2 = c.S2 + 0x21u;
         c.RA = 0x800F61FCu;
-        SoTN.MenuDrawRect(c, m);
+        SoTN_dra.MenuDrawRect(c, m);
         c.RA = m.ReadU32((c.SP + 0x50u));
         c.S7 = m.ReadU32((c.SP + 0x4Cu));
         c.S6 = m.ReadU32((c.SP + 0x48u));
@@ -9230,7 +9230,7 @@ public static partial class RandoPatch
         c.At = 0x80130000u;
         m.WriteU32((c.At + 0x7614u), c.V0);
         c.RA = 0x800FBC54u;
-        SoTN.func_800F97DC(c, m);
+        SoTN_dra.func_800F97DC(c, m);
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU32((c.V0 + 0x78F8u));
         c.V0 = c.V0 < 0x00000010u ? 1u : 0u;
@@ -9246,7 +9246,7 @@ public static partial class RandoPatch
             goto L800FBC9C;
         }
         c.RA = 0x800FBC8Cu;
-        SoTN.CheckIfAllButtonsAreAssigned(c, m);
+        SoTN_dra.CheckIfAllButtonsAreAssigned(c, m);
         if (c.V0 == 0u)
         {
             c.V0 = 0u | 0x0003u;
@@ -9324,21 +9324,21 @@ public static partial class RandoPatch
         }
     L800FBCCC:;
         c.RA = 0x800FBCD4u;
-        SoTN.CdSoundCommandQueueEmpty(c, m);
+        SoTN_dra.CdSoundCommandQueueEmpty(c, m);
         if (c.V0 == 0u)
         {
             goto L800FD344;
         }
         c.A0 = 0u | 0x0010u;
         c.RA = 0x800FBCE4u;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
         c.A0 = 0u + 0u;
         c.RA = 0x800FBCECu;
-        SoTN.func_800EA5E4(c, m);
+        SoTN_dra.func_800EA5E4(c, m);
         c.RA = 0x800FBCF4u;
-        SoTN.func_800FAC30(c, m);
+        SoTN_dra.func_800FAC30(c, m);
         c.RA = 0x800FBCFCu;
-        SoTN.func_800FB9BC(c, m);
+        SoTN_dra.func_800FB9BC(c, m);
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU32((c.V0 + 0x7C00u));
         c.V1 = 0x80090000u;
@@ -9456,20 +9456,20 @@ public static partial class RandoPatch
         goto L800FD344;
     L800FBE60:;
         c.RA = 0x800FBE68u;
-        SoTN.func_801025F4(c, m);
+        SoTN_dra.func_801025F4(c, m);
         if (c.V0 == 0u)
         {
             goto L800FD344;
         }
         c.RA = 0x800FBE78u;
-        SoTN.SetGPUBuffRGBZero(c, m);
+        SoTN_dra.SetGPUBuffRGBZero(c, m);
         c.A0 = 0u | 0x0180u;
         c.RA = 0x800FBE80u;
-        SoTN.SetFadeWidth(c, m);
+        SoTN_dra.SetFadeWidth(c, m);
         c.RA = 0x800FBE88u;
-        SoTN.SetMenuDisplayBuffer(c, m);
+        SoTN_dra.SetMenuDisplayBuffer(c, m);
         c.RA = 0x800FBE90u;
-        SoTN.func_800FAC48(c, m);
+        SoTN_dra.func_800FAC48(c, m);
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU32((c.V0 + 0x78F8u));
         c.V1 = 0u | 0x0001u;
@@ -9479,7 +9479,7 @@ public static partial class RandoPatch
         goto L800FCE64;
     L800FBEAC:;
         c.RA = 0x800FBEB4u;
-        SoTN.func_80133950(c, m);
+        SoTN_dra.func_80133950(c, m);
         if (c.V0 == 0u)
         {
             goto L800FD344;
@@ -9491,23 +9491,23 @@ public static partial class RandoPatch
         c.At = 0x80130000u;
         m.WriteU32((c.At + 0x7958u), c.V0);
         c.RA = 0x800FBEDCu;
-        SoTN.func_800F6A48(c, m);
+        SoTN_dra.func_800F6A48(c, m);
         c.RA = 0x800FBEE4u;
-        SoTN.func_800F84CC(c, m);
+        SoTN_dra.func_800F84CC(c, m);
         c.A0 = 0u | 0x0002u;
         c.RA = 0x800FBEECu;
-        SoTN.SetFadeMode(c, m);
+        SoTN_dra.SetFadeMode(c, m);
         c.A0 = 0x800A0000u;
         c.A0 = m.ReadU32((c.A0 + 0x2D64u));
         c.A1 = 0u + 0u;
         c.RA = 0x800FBEFCu;
-        SoTN.func_800F98AC(c, m);
+        SoTN_dra.func_800F98AC(c, m);
         c.A0 = 0u + 0u;
         c.RA = 0x800FBF04u;
-        SoTN.func_800FABEC(c, m);
+        SoTN_dra.func_800FABEC(c, m);
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FBF0Cu;
-        SoTN.func_800FABEC(c, m);
+        SoTN_dra.func_800FABEC(c, m);
         c.V0 = 0u | 0x0010u;
         c.At = 0x80130000u;
         m.WriteU32((c.At + 0x7608u), 0u);
@@ -9519,43 +9519,43 @@ public static partial class RandoPatch
     L800FBF30:;
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FBF38u;
-        SoTN.SetFadeMode(c, m);
+        SoTN_dra.SetFadeMode(c, m);
         goto L800FCE54;
     L800FBF40:;
         c.RA = 0x800FBF48u;
-        SoTN.func_801025F4(c, m);
+        SoTN_dra.func_801025F4(c, m);
         if (c.V0 == 0u)
         {
             goto L800FD344;
         }
         c.A0 = 0u | 0x0100u;
         c.RA = 0x800FBF58u;
-        SoTN.SetFadeWidth(c, m);
+        SoTN_dra.SetFadeWidth(c, m);
         c.RA = 0x800FBF60u;
-        SoTN.SetStageDisplayBuffer_dra(c, m);
+        SoTN_dra.SetStageDisplayBuffer_dra(c, m);
         c.RA = 0x800FBF68u;
-        SoTN.func_800FAC48(c, m);
+        SoTN_dra.func_800FAC48(c, m);
         c.RA = 0x800FBF70u;
-        SoTN.func_800EB6B4(c, m);
+        SoTN_dra.func_800EB6B4(c, m);
         goto L800FCE54;
     L800FBF78:;
         c.RA = 0x800FBF80u;
-        SoTN.UpdateCapePalette(c, m);
+        SoTN_dra.UpdateCapePalette(c, m);
         c.A0 = 0x80090000u;
         c.A0 = m.ReadU32((c.A0 + 0x7904u));
         c.RA = 0x800FBF90u;
-        SoTN.LoadGfxAsync(c, m);
+        SoTN_dra.LoadGfxAsync(c, m);
         goto L800FCE54;
     L800FBF98:;
         c.RA = 0x800FBFA0u;
-        SoTN.func_800EB720(c, m);
+        SoTN_dra.func_800EB720(c, m);
         if (c.V0 != 0u)
         {
             goto L800FD344;
         }
         c.A0 = 0u + 0u;
         c.RA = 0x800FBFB0u;
-        SoTN.LoadWeaponPrg(c, m);
+        SoTN_dra.LoadWeaponPrg(c, m);
         if (c.V0 == 0u)
         {
             goto L800FD344;
@@ -9568,7 +9568,7 @@ public static partial class RandoPatch
         }
         c.A0 = 0u + 0u;
         c.RA = 0x800FBFD4u;
-        SoTN.InitWeapon(c, m);
+        SoTN_dra.InitWeapon(c, m);
         goto L800FCE54;
     L800FBFDC:;
         c.V0 = 0x80090000u;
@@ -9585,12 +9585,12 @@ public static partial class RandoPatch
         }
         c.A0 = 0u + 0u;
         c.RA = 0x800FC00Cu;
-        SoTN.InitWeapon(c, m);
+        SoTN_dra.InitWeapon(c, m);
         goto L800FCE54;
     L800FC014:;
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FC01Cu;
-        SoTN.LoadWeaponPrg(c, m);
+        SoTN_dra.LoadWeaponPrg(c, m);
         if (c.V0 == 0u)
         {
             goto L800FD344;
@@ -9603,7 +9603,7 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FC040u;
-        SoTN.InitWeapon(c, m);
+        SoTN_dra.InitWeapon(c, m);
         goto L800FCE54;
     L800FC048:;
         c.V0 = 0x80090000u;
@@ -9620,7 +9620,7 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FC078u;
-        SoTN.InitWeapon(c, m);
+        SoTN_dra.InitWeapon(c, m);
         goto L800FCE54;
     L800FC080:;
         c.V1 = 0x80070000u;
@@ -9637,7 +9637,7 @@ public static partial class RandoPatch
         }
     L800FC0A8:;
         c.RA = 0x800FC0B0u;
-        SoTN.func_800FAB1C(c, m);
+        SoTN_dra.func_800FAB1C(c, m);
         c.V1 = 0x80070000u;
         c.V1 = m.ReadU32((c.V1 - 0x343Cu));
     L800FC0B8:;
@@ -9682,7 +9682,7 @@ public static partial class RandoPatch
         c.A0 = 0u | 0x0003u;
     L800FC12C:;
         c.RA = 0x800FC134u;
-        SoTN.InitializeServant(c, m);
+        SoTN_dra.InitializeServant(c, m);
     L800FC134:;
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU32((c.V0 + 0x78F8u));
@@ -9724,11 +9724,11 @@ public static partial class RandoPatch
         goto L800FD344;
     L800FC1C0:;
         c.RA = 0x800FC1C8u;
-        SoTN.func_800E6250(c, m);
+        SoTN_dra.func_800E6250(c, m);
     L800FC1C8:;
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FC1D0u;
-        SoTN.InitializeServant(c, m);
+        SoTN_dra.InitializeServant(c, m);
         c.A0 = 0x80070000u;
         c.A0 = m.ReadU32((c.A0 - 0x343Cu));
         c.V1 = c.A0 - 0x1u;
@@ -9759,7 +9759,7 @@ public static partial class RandoPatch
             goto L800FD344;
         }
         c.RA = 0x800FC23Cu;
-        SoTN.CdSoundCommandQueueEmpty(c, m);
+        SoTN_dra.CdSoundCommandQueueEmpty(c, m);
         if (c.V0 == 0u)
         {
             goto L800FD344;
@@ -9776,49 +9776,49 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0011u;
         c.RA = 0x800FC26Cu;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
     L800FC26C:;
         c.RA = 0x800FC274u;
-        SoTN.CheckWeaponCombo(c, m);
+        SoTN_dra.CheckWeaponCombo(c, m);
         c.RA = 0x800FC27Cu;
-        SoTN.func_800F53A4(c, m);
+        SoTN_dra.func_800F53A4(c, m);
         c.At = 0x80090000u;
         m.WriteU32((c.At + 0x73ECu), 0u);
         c.RA = 0x800FC28Cu;
-        SoTN.func_800FAC30(c, m);
+        SoTN_dra.func_800FAC30(c, m);
         c.RA = 0x800FC294u;
-        SoTN.func_800F86E4(c, m);
+        SoTN_dra.func_800F86E4(c, m);
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FC29Cu;
-        SoTN.func_8010A234(c, m);
+        SoTN_dra.func_8010A234(c, m);
         goto L800FCE54;
     L800FC2A4:;
         c.RA = 0x800FC2ACu;
-        SoTN.func_80133950(c, m);
+        SoTN_dra.func_80133950(c, m);
         if (c.V0 == 0u)
         {
             goto L800FD344;
         }
         c.A0 = 0u | 0x0002u;
         c.RA = 0x800FC2BCu;
-        SoTN.SetFadeMode(c, m);
+        SoTN_dra.SetFadeMode(c, m);
         goto L800FCE54;
     L800FC2C4:;
         c.RA = 0x800FC2CCu;
-        SoTN.func_801025F4(c, m);
+        SoTN_dra.func_801025F4(c, m);
         if (c.V0 == 0u)
         {
             goto L800FD344;
         }
         c.A0 = 0u | 0x000Fu;
         c.RA = 0x800FC2DCu;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
         c.A0 = 0u | 0x00A4u;
         c.RA = 0x800FC2E4u;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
         c.A0 = 0u | 0x00A8u;
         c.RA = 0x800FC2ECu;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
         c.V0 = 0u | 0x0001u;
         c.At = 0x80040000u;
         m.WriteU32((c.At - 0x365Cu), c.V0);
@@ -9840,7 +9840,7 @@ public static partial class RandoPatch
         c.A1 = 0u | 0x0005u;
         c.A2 = 0u + 0u;
         c.RA = 0x800FC334u;
-        SoTN.MenuHandleCursorInput(c, m);
+        SoTN_dra.MenuHandleCursorInput(c, m);
         c.V0 = m.ReadU16(c.S1);
         c.V0 = c.V0 & 0x0040u;
         if (c.V0 == 0u)
@@ -9870,17 +9870,17 @@ public static partial class RandoPatch
     L800FC374:;
         c.A0 = 0u | 0x0002u;
         c.RA = 0x800FC37Cu;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.RA = 0x800FC384u;
-        SoTN.func_800FB0FC(c, m);
+        SoTN_dra.func_800FB0FC(c, m);
         c.RA = 0x800FC38Cu;
-        SoTN.func_800FADC0(c, m);
+        SoTN_dra.func_800FADC0(c, m);
         c.A0 = 0u | 0x0003u;
         c.RA = 0x800FC394u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.A0 = 0u | 0x0004u;
         c.RA = 0x800FC39Cu;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.V0 = 0u | 0x0040u;
         goto L800FC3EC;
     L800FC3A4:;
@@ -9896,7 +9896,7 @@ public static partial class RandoPatch
     L800FC3C0:;
         c.A0 = 0u + 0u;
         c.RA = 0x800FC3C8u;
-        SoTN.func_800F9E18(c, m);
+        SoTN_dra.func_800F9E18(c, m);
         c.V0 = 0u | 0x0020u;
         goto L800FC3EC;
     L800FC3D0:;
@@ -9924,20 +9924,20 @@ public static partial class RandoPatch
         }
         c.A0 = 0u + 0u;
         c.RA = 0x800FC410u;
-        SoTN.MenuHide(c, m);
+        SoTN_dra.MenuHide(c, m);
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FC418u;
-        SoTN.MenuHide(c, m);
+        SoTN_dra.MenuHide(c, m);
         goto L800FC67C;
     L800FC420:;
         c.A0 = 0u | 0x0021u;
         c.RA = 0x800FC428u;
-        SoTN.func_800EA5E4(c, m);
+        SoTN_dra.func_800EA5E4(c, m);
         c.RA = 0x800FC430u;
-        SoTN.func_800EAEA4(c, m);
+        SoTN_dra.func_800EAEA4(c, m);
         c.A0 = 0u | 0x000Fu;
         c.RA = 0x800FC438u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         goto L800FCE54;
     L800FC440:;
         c.V0 = 0x80090000u;
@@ -9949,23 +9949,23 @@ public static partial class RandoPatch
         }
         c.A0 = 0u + 0u;
         c.RA = 0x800FC460u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FC468u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.RA = 0x800FC470u;
-        SoTN.func_800EAEA4(c, m);
+        SoTN_dra.func_800EAEA4(c, m);
         c.A0 = 0u | 0x000Fu;
         goto L800FCD18;
     L800FC478:;
         c.RA = 0x800FC480u;
-        SoTN.func_800F82F4(c, m);
+        SoTN_dra.func_800F82F4(c, m);
         c.A0 = 0u | 0x0004u;
         c.RA = 0x800FC488u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.A0 = 0u | 0x0007u;
         c.RA = 0x800FC490u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU32((c.V0 + 0x78F8u));
         c.V0 = c.V0 + 0x1u;
@@ -9978,10 +9978,10 @@ public static partial class RandoPatch
         c.A1 = 0u | 0x0006u;
         c.A2 = 0u + 0u;
         c.RA = 0x800FC4C0u;
-        SoTN.MenuHandleCursorInput(c, m);
+        SoTN_dra.MenuHandleCursorInput(c, m);
         c.A0 = 0u | 0x0002u;
         c.RA = 0x800FC4C8u;
-        SoTN.func_800F9808(c, m);
+        SoTN_dra.func_800F9808(c, m);
         c.V0 = m.ReadU32(c.S0);
         c.V1 = c.V0 + 0x1u;
         c.V0 = 0u | 0x0002u;
@@ -10040,7 +10040,7 @@ public static partial class RandoPatch
         c.A0 = m.ReadU32((c.At + 0x2D48u));
         c.A2 = 0u + 0u;
         c.RA = 0x800FC550u;
-        SoTN.func_800F99B8(c, m);
+        SoTN_dra.func_800F99B8(c, m);
         c.V1 = 0x80090000u;
         c.V1 = m.ReadU16((c.V1 + 0x7494u));
         c.V0 = c.V1 & 0x0010u;
@@ -10052,13 +10052,13 @@ public static partial class RandoPatch
         c.V0 = c.V1 & 0x0040u;
         c.A0 = 0u + 0u;
         c.RA = 0x800FC570u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FC578u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.A0 = 0u | 0x0004u;
         c.RA = 0x800FC580u;
-        SoTN.MenuHide(c, m);
+        SoTN_dra.MenuHide(c, m);
         c.A0 = 0u | 0x0007u;
         goto L800FCD18;
     L800FC588:;
@@ -10091,7 +10091,7 @@ public static partial class RandoPatch
     L800FC5C0:;
         c.A0 = 0u | 0x0009u;
         c.RA = 0x800FC5C8u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.V0 = 0u | 0x0102u;
         goto L800FC660;
     L800FC5D0:;
@@ -10103,7 +10103,7 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x000Au;
         c.RA = 0x800FC5ECu;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.V0 = 0u | 0x0103u;
         goto L800FC660;
     L800FC5F4:;
@@ -10115,19 +10115,19 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0008u;
         c.RA = 0x800FC610u;
-        SoTN.func_800FABEC(c, m);
+        SoTN_dra.func_800FABEC(c, m);
         c.V0 = 0u | 0x0104u;
         goto L800FC660;
     L800FC618:;
         c.A0 = 0u | 0x000Cu;
         c.RA = 0x800FC620u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.V0 = 0u | 0x0105u;
         goto L800FC660;
     L800FC628:;
         c.A0 = 0u | 0x000Bu;
         c.RA = 0x800FC630u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.V0 = 0u | 0x0106u;
         goto L800FC660;
     L800FC638:;
@@ -10138,10 +10138,10 @@ public static partial class RandoPatch
             goto L800FC668;
         }
         c.RA = 0x800FC654u;
-        SoTN.SortTimeAttackEntries(c, m);
+        SoTN_dra.SortTimeAttackEntries(c, m);
         c.A0 = 0u | 0x000Du;
         c.RA = 0x800FC65Cu;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.V0 = 0u | 0x0107u;
     L800FC660:;
         c.At = 0x80090000u;
@@ -10157,7 +10157,7 @@ public static partial class RandoPatch
     L800FC67C:;
         c.A0 = 0u | 0x0633u;
         c.RA = 0x800FC684u;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
         goto L800FD344;
     L800FC68C:;
         c.S0 = 0x80040000u;
@@ -10166,7 +10166,7 @@ public static partial class RandoPatch
         c.A1 = 0u | 0x0007u;
         c.A2 = 0u + 0u;
         c.RA = 0x800FC6A4u;
-        SoTN.MenuHandleCursorInput(c, m);
+        SoTN_dra.MenuHandleCursorInput(c, m);
         c.A1 = 0u | 0x0008u;
         c.A2 = 0u | 0x0005u;
         c.A0 = m.ReadU32(c.S0);
@@ -10175,7 +10175,7 @@ public static partial class RandoPatch
         c.A0 = c.A0 << 2;
         c.A0 = c.A0 + c.V0;
         c.RA = 0x800FC6C4u;
-        SoTN.MenuHandleCursorInput(c, m);
+        SoTN_dra.MenuHandleCursorInput(c, m);
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU16((c.V0 + 0x7494u));
         c.V0 = c.V0 & 0x0050u;
@@ -10184,30 +10184,30 @@ public static partial class RandoPatch
             goto L800FD344;
         }
         c.RA = 0x800FC6E4u;
-        SoTN.CheckIfAllButtonsAreAssigned(c, m);
+        SoTN_dra.CheckIfAllButtonsAreAssigned(c, m);
         if (c.V0 == 0u)
         {
             goto L800FC6FC;
         }
         c.A0 = 0u | 0x0633u;
         c.RA = 0x800FC6F4u;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
         c.A0 = 0u | 0x0009u;
         goto L800FC8A8;
     L800FC6FC:;
         c.A0 = 0u | 0x0002u;
         c.RA = 0x800FC704u;
-        SoTN.func_800F9808(c, m);
+        SoTN_dra.func_800F9808(c, m);
         c.A0 = 0x800E0000u;
         c.A0 = c.A0 - 0x38CCu;
         c.A1 = 0u | 0x0002u;
         c.A2 = 0u + 0u;
         c.RA = 0x800FC718u;
-        SoTN.func_800F99B8(c, m);
+        SoTN_dra.func_800F99B8(c, m);
     L800FC718:;
         c.A0 = 0u | 0x0686u;
         c.RA = 0x800FC720u;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
         goto L800FD344;
     L800FC728:;
         c.A0 = 0x80040000u;
@@ -10215,7 +10215,7 @@ public static partial class RandoPatch
         c.A1 = 0u | 0x0002u;
         c.A2 = 0u + 0u;
         c.RA = 0x800FC73Cu;
-        SoTN.MenuHandleCursorInput(c, m);
+        SoTN_dra.MenuHandleCursorInput(c, m);
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU16((c.V0 + 0x7494u));
         c.V0 = c.V0 & 0x0050u;
@@ -10225,7 +10225,7 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0633u;
         c.RA = 0x800FC75Cu;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
         c.A0 = 0u | 0x000Au;
         goto L800FC8A8;
     L800FC764:;
@@ -10235,7 +10235,7 @@ public static partial class RandoPatch
         c.A1 = 0u | 0x0006u;
         c.A2 = 0u + 0u;
         c.RA = 0x800FC77Cu;
-        SoTN.MenuHandleCursorInput(c, m);
+        SoTN_dra.MenuHandleCursorInput(c, m);
         c.A1 = 0u | 0x0020u;
         c.A2 = 0u | 0x0005u;
         c.A0 = m.ReadU32(c.S0);
@@ -10244,7 +10244,7 @@ public static partial class RandoPatch
         c.A0 = c.A0 << 2;
         c.A0 = c.A0 + c.V0;
         c.RA = 0x800FC79Cu;
-        SoTN.MenuHandleCursorInput(c, m);
+        SoTN_dra.MenuHandleCursorInput(c, m);
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU16((c.V0 + 0x7494u));
         c.V0 = c.V0 & 0x0050u;
@@ -10254,10 +10254,10 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0633u;
         c.RA = 0x800FC7BCu;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
         c.A0 = 0u | 0x0008u;
         c.RA = 0x800FC7C4u;
-        SoTN.func_800FAC0C(c, m);
+        SoTN_dra.func_800FAC0C(c, m);
         c.V0 = 0u | 0x0101u;
         goto L800FC8B4;
     L800FC7CC:;
@@ -10267,7 +10267,7 @@ public static partial class RandoPatch
         c.A1 = 0u | 0x0003u;
         c.A2 = 0u + 0u;
         c.RA = 0x800FC7E4u;
-        SoTN.MenuHandleCursorInput(c, m);
+        SoTN_dra.MenuHandleCursorInput(c, m);
         c.A1 = 0u | 0x0010u;
         c.A2 = 0u | 0x0005u;
         c.A0 = m.ReadU32(c.S0);
@@ -10276,7 +10276,7 @@ public static partial class RandoPatch
         c.A0 = c.A0 << 2;
         c.A0 = c.A0 + c.V0;
         c.RA = 0x800FC804u;
-        SoTN.MenuHandleCursorInput(c, m);
+        SoTN_dra.MenuHandleCursorInput(c, m);
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU16((c.V0 + 0x7494u));
         c.V0 = c.V0 & 0x0050u;
@@ -10286,7 +10286,7 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0633u;
         c.RA = 0x800FC824u;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
         c.A0 = 0u | 0x000Cu;
         goto L800FC8A8;
     L800FC82C:;
@@ -10295,9 +10295,9 @@ public static partial class RandoPatch
         c.A1 = 0u | 0x0002u;
         c.A2 = 0u + 0u;
         c.RA = 0x800FC840u;
-        SoTN.MenuHandleCursorInput(c, m);
+        SoTN_dra.MenuHandleCursorInput(c, m);
         c.RA = 0x800FC848u;
-        SoTN.func_800E493C(c, m);
+        SoTN_dra.func_800E493C(c, m);
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU16((c.V0 + 0x7494u));
         c.V0 = c.V0 & 0x0050u;
@@ -10307,7 +10307,7 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0633u;
         c.RA = 0x800FC868u;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
         c.A0 = 0u | 0x000Bu;
         goto L800FC8A8;
     L800FC870:;
@@ -10316,7 +10316,7 @@ public static partial class RandoPatch
         c.A1 = 0u | 0x0010u;
         c.A2 = 0u | 0x0003u;
         c.RA = 0x800FC884u;
-        SoTN.MenuHandleCursorInput(c, m);
+        SoTN_dra.MenuHandleCursorInput(c, m);
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU16((c.V0 + 0x7494u));
         c.V0 = c.V0 & 0x0050u;
@@ -10326,11 +10326,11 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0633u;
         c.RA = 0x800FC8A4u;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
         c.A0 = 0u | 0x000Du;
     L800FC8A8:;
         c.RA = 0x800FC8B0u;
-        SoTN.MenuHide(c, m);
+        SoTN_dra.MenuHide(c, m);
         c.V0 = 0u | 0x0101u;
     L800FC8B4:;
         c.At = 0x80090000u;
@@ -10339,18 +10339,18 @@ public static partial class RandoPatch
     L800FC8C4:;
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FC8CCu;
-        SoTN.func_800F9E18(c, m);
+        SoTN_dra.func_800F9E18(c, m);
         goto L800FCE54;
     L800FC8D4:;
         c.A0 = 0u | 0x0004u;
         c.RA = 0x800FC8DCu;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.A0 = 0u | 0x0005u;
         c.RA = 0x800FC8E4u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.A0 = 0u | 0x0002u;
         c.RA = 0x800FC8ECu;
-        SoTN.func_800F9808(c, m);
+        SoTN_dra.func_800F9808(c, m);
         c.S0 = 0x80040000u;
         c.S0 = m.ReadU32((c.S0 - 0x3654u));
         c.V0 = (int)c.S0 < 23 ? 1u : 0u;
@@ -10376,11 +10376,11 @@ public static partial class RandoPatch
         c.A1 = 0u | 0x0002u;
         c.A2 = 0u + 0u;
         c.RA = 0x800FC93Cu;
-        SoTN.func_800F99B8(c, m);
+        SoTN_dra.func_800F99B8(c, m);
     L800FC93C:;
         c.A0 = 0u | 0x0002u;
         c.RA = 0x800FC944u;
-        SoTN.func_800F9E18(c, m);
+        SoTN_dra.func_800F9E18(c, m);
         goto L800FCE54;
     L800FC94C:;
         c.A1 = 0x92490000u;
@@ -10420,7 +10420,7 @@ public static partial class RandoPatch
         }
         c.A2 = 0u | 0x0001u;
         c.RA = 0x800FC9BCu;
-        SoTN.MenuHandleCursorInput(c, m);
+        SoTN_dra.MenuHandleCursorInput(c, m);
         c.S0 = m.ReadU32(c.S0);
         c.V0 = (int)c.S0 < 23 ? 1u : 0u;
         if (c.V0 != 0u)
@@ -10450,7 +10450,7 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0633u;
         c.RA = 0x800FCA10u;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
         c.At = 0x80090000u;
         c.At = c.At + c.S0;
         c.V0 = m.ReadU8((c.At + 0x7964u));
@@ -10530,7 +10530,7 @@ public static partial class RandoPatch
         m.WriteU32(c.V1, 0u);
         c.A1 = 0u + 0u;
         c.RA = 0x800FCAFCu;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
     L800FCAFC:;
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU32((c.V0 + 0x7C04u));
@@ -10544,7 +10544,7 @@ public static partial class RandoPatch
         m.WriteU32((c.At + 0x7C04u), 0u);
         c.A1 = 0u + 0u;
         c.RA = 0x800FCB20u;
-        SoTN.AddToInventory(c, m);
+        SoTN_dra.AddToInventory(c, m);
         goto L800FCB30;
     L800FCB28:;
         c.At = 0x80070000u;
@@ -10556,7 +10556,7 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0002u;
         c.RA = 0x800FCB40u;
-        SoTN.func_800F9808(c, m);
+        SoTN_dra.func_800F9808(c, m);
         c.At = 0x80090000u;
         c.At = c.At + c.S0;
         c.V0 = m.ReadU8((c.At + 0x7964u));
@@ -10573,7 +10573,7 @@ public static partial class RandoPatch
         c.A1 = 0u | 0x0002u;
         c.A2 = 0u + 0u;
         c.RA = 0x800FCB74u;
-        SoTN.func_800F99B8(c, m);
+        SoTN_dra.func_800F99B8(c, m);
     L800FCB74:;
         c.At = 0x80130000u;
         m.WriteU32((c.At + 0x7608u), 0u);
@@ -10598,7 +10598,7 @@ public static partial class RandoPatch
         m.WriteU32((c.At + 0x7608u), c.V0);
         c.A2 = 0u | 0x001Fu;
         c.RA = 0x800FCBC4u;
-        SoTN.LoadEquipIcon(c, m);
+        SoTN_dra.LoadEquipIcon(c, m);
     L800FCBC4:;
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU16((c.V0 + 0x7494u));
@@ -10609,33 +10609,33 @@ public static partial class RandoPatch
         }
         c.A0 = 0u + 0u;
         c.RA = 0x800FCBE4u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FCBECu;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.A0 = 0u | 0x0004u;
         c.RA = 0x800FCBF4u;
-        SoTN.MenuHide(c, m);
+        SoTN_dra.MenuHide(c, m);
         c.A0 = 0u | 0x0005u;
         c.RA = 0x800FCBFCu;
-        SoTN.MenuHide(c, m);
+        SoTN_dra.MenuHide(c, m);
         c.V0 = 0u | 0x0010u;
         goto L800FCF94;
     L800FCC04:;
         c.A0 = 0u | 0x0004u;
         c.RA = 0x800FCC0Cu;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.A0 = 0u | 0x0006u;
         c.RA = 0x800FCC14u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.A0 = 0u | 0x0002u;
         c.RA = 0x800FCC1Cu;
-        SoTN.func_800F9808(c, m);
+        SoTN_dra.func_800F9808(c, m);
         c.RA = 0x800FCC24u;
-        SoTN.func_800F9F40(c, m);
+        SoTN_dra.func_800F9F40(c, m);
         c.A0 = 0u | 0x0002u;
         c.RA = 0x800FCC2Cu;
-        SoTN.func_800F9808(c, m);
+        SoTN_dra.func_800F9808(c, m);
         c.V0 = 0x80040000u;
         c.V0 = m.ReadU32((c.V0 - 0x3624u));
         c.At = 0x80090000u;
@@ -10651,7 +10651,7 @@ public static partial class RandoPatch
         c.A0 = m.ReadU32((c.At - 0x7BE8u));
         c.A2 = 0u + 0u;
         c.RA = 0x800FCC68u;
-        SoTN.func_800F99B8(c, m);
+        SoTN_dra.func_800F99B8(c, m);
         goto L800FCE54;
     L800FCC70:;
         c.S0 = 0x80040000u;
@@ -10662,7 +10662,7 @@ public static partial class RandoPatch
         c.S1 = m.ReadU32(c.S0);
         c.A2 = 0u | 0x0003u;
         c.RA = 0x800FCC90u;
-        SoTN.MenuHandleCursorInput(c, m);
+        SoTN_dra.MenuHandleCursorInput(c, m);
         c.V0 = m.ReadU32(c.S0);
         if (c.S1 == c.V0)
         {
@@ -10670,7 +10670,7 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0002u;
         c.RA = 0x800FCCA8u;
-        SoTN.func_800F9808(c, m);
+        SoTN_dra.func_800F9808(c, m);
         c.V0 = 0x80040000u;
         c.V0 = m.ReadU32((c.V0 - 0x3624u));
         c.At = 0x80090000u;
@@ -10686,7 +10686,7 @@ public static partial class RandoPatch
         c.A0 = m.ReadU32((c.At - 0x7BE8u));
         c.A2 = 0u + 0u;
         c.RA = 0x800FCCE4u;
-        SoTN.func_800F99B8(c, m);
+        SoTN_dra.func_800F99B8(c, m);
     L800FCCE4:;
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU16((c.V0 + 0x7494u));
@@ -10697,35 +10697,35 @@ public static partial class RandoPatch
         }
         c.A0 = 0u + 0u;
         c.RA = 0x800FCD04u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FCD0Cu;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.A0 = 0u | 0x0004u;
         c.RA = 0x800FCD14u;
-        SoTN.MenuHide(c, m);
+        SoTN_dra.MenuHide(c, m);
         c.A0 = 0u | 0x0006u;
     L800FCD18:;
         c.RA = 0x800FCD20u;
-        SoTN.MenuHide(c, m);
+        SoTN_dra.MenuHide(c, m);
         c.V0 = 0u | 0x0010u;
         c.At = 0x80090000u;
         m.WriteU32((c.At + 0x78F8u), c.V0);
         goto L800FD344;
     L800FCD34:;
         c.RA = 0x800FCD3Cu;
-        SoTN.func_801025F4(c, m);
+        SoTN_dra.func_801025F4(c, m);
         if (c.V0 == 0u)
         {
             goto L800FD344;
         }
         c.A0 = 0u | 0x0100u;
         c.RA = 0x800FCD4Cu;
-        SoTN.SetFadeWidth(c, m);
+        SoTN_dra.SetFadeWidth(c, m);
         c.RA = 0x800FCD54u;
-        SoTN.SetStageDisplayBuffer_dra(c, m);
+        SoTN_dra.SetStageDisplayBuffer_dra(c, m);
         c.RA = 0x800FCD5Cu;
-        SoTN.func_800FAC48(c, m);
+        SoTN_dra.func_800FAC48(c, m);
         goto L800FCE54;
     L800FCD64:;
         c.V0 = 0x80070000u;
@@ -10739,15 +10739,15 @@ public static partial class RandoPatch
         c.At = 0x80040000u;
         m.WriteU8((c.At - 0x34DCu), (byte)0u);
         c.RA = 0x800FCD90u;
-        SoTN.func_801083BC(c, m);
+        SoTN_dra.func_801083BC(c, m);
         goto L800FCE54;
     L800FCD98:;
         c.RA = 0x800FCDA0u;
-        SoTN.func_800F5A90(c, m);
+        SoTN_dra.func_800F5A90(c, m);
         goto L800FCE54;
     L800FCDA8:;
         c.RA = 0x800FCDB0u;
-        SoTN.func_800F5A90(c, m);
+        SoTN_dra.func_800F5A90(c, m);
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU16((c.V0 + 0x7494u));
         c.V0 = c.V0 & 0x0050u;
@@ -10756,26 +10756,26 @@ public static partial class RandoPatch
             goto L800FD344;
         }
         c.RA = 0x800FCDD0u;
-        SoTN.func_801073C0(c, m);
+        SoTN_dra.func_801073C0(c, m);
         c.At = 0x80070000u;
         m.WriteU32((c.At - 0x3C68u), 0u);
         c.RA = 0x800FCDE0u;
-        SoTN.SetGPUBuffRGBZero(c, m);
+        SoTN_dra.SetGPUBuffRGBZero(c, m);
         c.A0 = 0u | 0x0180u;
         c.RA = 0x800FCDE8u;
-        SoTN.SetFadeWidth(c, m);
+        SoTN_dra.SetFadeWidth(c, m);
         c.RA = 0x800FCDF0u;
-        SoTN.SetMenuDisplayBuffer(c, m);
+        SoTN_dra.SetMenuDisplayBuffer(c, m);
         c.RA = 0x800FCDF8u;
-        SoTN.func_800FAC48(c, m);
+        SoTN_dra.func_800FAC48(c, m);
         goto L800FCE54;
     L800FCE00:;
         c.A0 = 0u | 0x0002u;
         c.RA = 0x800FCE08u;
-        SoTN.SetFadeMode(c, m);
+        SoTN_dra.SetFadeMode(c, m);
         c.A0 = 0u | 0x0002u;
         c.RA = 0x800FCE10u;
-        SoTN.func_800F9808(c, m);
+        SoTN_dra.func_800F9808(c, m);
         c.V0 = 0x80040000u;
         c.V0 = m.ReadU32((c.V0 - 0x3624u));
         c.At = 0x80090000u;
@@ -10790,9 +10790,9 @@ public static partial class RandoPatch
         c.A0 = m.ReadU32((c.At - 0x7BE8u));
         c.A1 = 0u | 0x0002u;
         c.RA = 0x800FCE4Cu;
-        SoTN.func_800F98AC(c, m);
+        SoTN_dra.func_800F98AC(c, m);
         c.RA = 0x800FCE54u;
-        SoTN.func_800F9F40(c, m);
+        SoTN_dra.func_800F9F40(c, m);
     L800FCE54:;
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU32((c.V0 + 0x78F8u));
@@ -10803,7 +10803,7 @@ public static partial class RandoPatch
         goto L800FD344;
     L800FCE74:;
         c.RA = 0x800FCE7Cu;
-        SoTN.func_801025F4(c, m);
+        SoTN_dra.func_801025F4(c, m);
         if (c.V0 == 0u)
         {
             c.V0 = 0u | 0x0031u;
@@ -10817,7 +10817,7 @@ public static partial class RandoPatch
         c.At = 0x80130000u;
         m.WriteU32((c.At + 0x7948u), 0u);
         c.RA = 0x800FCEA4u;
-        SoTN.func_800FB0FC(c, m);
+        SoTN_dra.func_800FB0FC(c, m);
         c.S0 = 0x80040000u;
         c.S0 = c.S0 - 0x3650u;
         c.A0 = c.S0 + 0u;
@@ -10825,19 +10825,19 @@ public static partial class RandoPatch
         c.S1 = m.ReadU32(c.S0);
         c.A2 = 0u + 0u;
         c.RA = 0x800FCEC0u;
-        SoTN.MenuHandleCursorInput(c, m);
+        SoTN_dra.MenuHandleCursorInput(c, m);
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FCEC8u;
-        SoTN.MenuEquipHandlePageScroll(c, m);
+        SoTN_dra.MenuEquipHandlePageScroll(c, m);
         c.RA = 0x800FCED0u;
-        SoTN.func_800FB0FC(c, m);
+        SoTN_dra.func_800FB0FC(c, m);
         c.V0 = m.ReadU32(c.S0);
         if (c.S1 == c.V0)
         {
             goto L800FCEE8;
         }
         c.RA = 0x800FCEE8u;
-        SoTN.func_800FADC0(c, m);
+        SoTN_dra.func_800FADC0(c, m);
     L800FCEE8:;
         c.V0 = 0x80090000u;
         c.V0 = m.ReadU16((c.V0 + 0x7494u));
@@ -10854,10 +10854,10 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0633u;
         c.RA = 0x800FCF1Cu;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
         c.A0 = 0u | 0x000Eu;
         c.RA = 0x800FCF24u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.V0 = 0u | 0x0041u;
         c.At = 0x80090000u;
         m.WriteU32((c.At + 0x78F8u), c.V0);
@@ -10876,19 +10876,19 @@ public static partial class RandoPatch
         c.V0 = c.V1 & 0x0040u;
         c.A0 = 0u | 0x0002u;
         c.RA = 0x800FCF60u;
-        SoTN.MenuHide(c, m);
+        SoTN_dra.MenuHide(c, m);
         c.A0 = 0u | 0x0003u;
         c.RA = 0x800FCF68u;
-        SoTN.MenuHide(c, m);
+        SoTN_dra.MenuHide(c, m);
         c.A0 = 0u | 0x0004u;
         c.RA = 0x800FCF70u;
-        SoTN.MenuHide(c, m);
+        SoTN_dra.MenuHide(c, m);
         c.A0 = 0u + 0u;
         c.RA = 0x800FCF78u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FCF80u;
-        SoTN.MenuShow(c, m);
+        SoTN_dra.MenuShow(c, m);
         c.V0 = 0u | 0x0010u;
         c.At = 0x80130000u;
         m.WriteU32((c.At + 0x7844u), 0u);
@@ -10907,10 +10907,10 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x0633u;
         c.RA = 0x800FCFBCu;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
     L800FCFBC:;
         c.RA = 0x800FCFC4u;
-        SoTN.func_800FB0FC(c, m);
+        SoTN_dra.func_800FB0FC(c, m);
         c.V0 = 0x80040000u;
         c.V0 = m.ReadU32((c.V0 - 0x3650u));
         c.V0 = (int)c.V0 < 2 ? 1u : 0u;
@@ -10930,16 +10930,16 @@ public static partial class RandoPatch
         goto L800FD344;
     L800FD000:;
         c.RA = 0x800FD008u;
-        SoTN.func_800FB0FC(c, m);
+        SoTN_dra.func_800FB0FC(c, m);
         c.A0 = 0x80130000u;
         c.A0 = c.A0 + 0x7618u;
         c.A1 = 0u | 0x000Bu;
         c.A2 = 0u + 0u;
         c.RA = 0x800FD01Cu;
-        SoTN.MenuHandleCursorInput(c, m);
+        SoTN_dra.MenuHandleCursorInput(c, m);
         c.A0 = 0u + 0u;
         c.RA = 0x800FD024u;
-        SoTN.MenuEquipHandlePageScroll(c, m);
+        SoTN_dra.MenuEquipHandlePageScroll(c, m);
         c.V1 = 0x80090000u;
         c.V1 = m.ReadU16((c.V1 + 0x7494u));
         c.V0 = c.V1 & 0x0040u;
@@ -10951,15 +10951,15 @@ public static partial class RandoPatch
         c.V0 = c.V1 & 0x0010u;
         c.A0 = 0u | 0x0633u;
         c.RA = 0x800FD044u;
-        SoTN.PlaySfx(c, m);
+        SoTN_dra.PlaySfx(c, m);
         c.RA = 0x800FD04Cu;
-        SoTN.func_800FBAC4(c, m);
+        SoTN_dra.func_800FBAC4(c, m);
         c.At = 0x80130000u;
         m.WriteU16((c.At + 0x768Cu), (ushort)0u);
         c.At = 0x80040000u;
         m.WriteU32((c.At - 0x364Cu), 0u);
         c.RA = 0x800FD064u;
-        SoTN.func_800FB0FC(c, m);
+        SoTN_dra.func_800FB0FC(c, m);
         goto L800FD344;
     L800FD06C:;
         if (c.V0 == 0u)
@@ -10968,7 +10968,7 @@ public static partial class RandoPatch
         }
         c.A0 = 0u | 0x000Eu;
         c.RA = 0x800FD07Cu;
-        SoTN.MenuHide(c, m);
+        SoTN_dra.MenuHide(c, m);
         c.V0 = 0u | 0x0040u;
         c.At = 0x80090000u;
         m.WriteU32((c.At + 0x78F8u), c.V0);
@@ -11000,10 +11000,10 @@ public static partial class RandoPatch
         c.A0 = c.A0 - 0x364Cu;
         m.WriteU32((c.SP + 0x10u), c.V0);
         c.RA = 0x800FD0FCu;
-        SoTN.func_800FAEC4(c, m);
+        SoTN_dra.func_800FAEC4(c, m);
         c.A0 = 0u + 0u;
         c.RA = 0x800FD104u;
-        SoTN.func_800FAF44(c, m);
+        SoTN_dra.func_800FAF44(c, m);
     L800FD104:;
         c.V0 = 0x80040000u;
         c.V0 = m.ReadU32((c.V0 - 0x3650u));
@@ -11032,7 +11032,7 @@ public static partial class RandoPatch
         c.A3 = c.A3 << 2;
         c.A3 = c.A3 + c.V0;
         c.RA = 0x800FD160u;
-        SoTN.func_800FB23C(c, m);
+        SoTN_dra.func_800FB23C(c, m);
         c.V1 = c.V0 + 0u;
         c.V0 = 0u | 0x0002u;
         if (c.V1 != c.V0)
@@ -11063,7 +11063,7 @@ public static partial class RandoPatch
         c.At = c.At + c.V0;
         c.A3 = m.ReadU16((c.At + 0x4B32u));
         c.RA = 0x800FD1D4u;
-        SoTN.func_800FAD34(c, m);
+        SoTN_dra.func_800FAD34(c, m);
         goto L800FD344;
     L800FD1DC:;
         c.A0 = 0x80130000u;
@@ -11096,10 +11096,10 @@ public static partial class RandoPatch
         c.A1 = m.ReadU8((c.At + 0x7A33u));
         m.WriteU32((c.SP + 0x10u), c.V0);
         c.RA = 0x800FD258u;
-        SoTN.func_800FAEC4(c, m);
+        SoTN_dra.func_800FAEC4(c, m);
         c.A0 = 0u | 0x0001u;
         c.RA = 0x800FD260u;
-        SoTN.func_800FAF44(c, m);
+        SoTN_dra.func_800FAF44(c, m);
     L800FD260:;
         c.S0 = 0x80090000u;
         c.S0 = c.S0 + 0x7B36u;
@@ -11120,7 +11120,7 @@ public static partial class RandoPatch
         c.A3 = c.A3 << 2;
         c.A3 = c.A3 + c.V0;
         c.RA = 0x800FD2ACu;
-        SoTN.func_800FB23C(c, m);
+        SoTN_dra.func_800FB23C(c, m);
         c.V1 = c.V0 + 0u;
         c.V0 = 0u | 0x0002u;
         if (c.V1 != c.V0)
@@ -11155,7 +11155,7 @@ public static partial class RandoPatch
         c.At = c.At + c.V0;
         c.A3 = m.ReadU16((c.At + 0x7732u));
         c.RA = 0x800FD334u;
-        SoTN.func_800FAD34(c, m);
+        SoTN_dra.func_800FAD34(c, m);
         goto L800FD344;
     L800FD33C:;
         if (c.V1 == c.V0)
@@ -11180,11 +11180,11 @@ public static partial class RandoPatch
         }
     L800FD368:;
         c.RA = 0x800FD370u;
-        SoTN.MenuDraw(c, m);
+        SoTN_dra.MenuDraw(c, m);
         c.RA = 0x800FD378u;
-        SoTN.func_800F9690(c, m);
+        SoTN_dra.func_800F9690(c, m);
         c.RA = 0x800FD380u;
-        SoTN.func_800F96F4(c, m);
+        SoTN_dra.func_800F96F4(c, m);
     L800FD380:;
         c.RA = m.ReadU32((c.SP + 0x24u));
         c.S2 = m.ReadU32((c.SP + 0x20u));
@@ -11251,13 +11251,13 @@ public static partial class RandoPatch
         // Get Arcana Count
         c.A0 = 0u | 0x004Bu;
         c.A1 = 0u | 0x0004u;
-        SoTN.CheckEquipmentItemCount(c, m);
+        SoTN_dra.CheckEquipmentItemCount(c, m);
         RingOfArcanaCount = c.V0;
 
-        SoTN.rand(c, m);
+        SoTN_main.rand(c, m);
         rnd = (Int32)(c.V0 & 0xFF);
 
-        SoTN.rand(c, m);
+        SoTN_main.rand(c, m);
         rnd -= (Int32)((c.V0 & 0x1F) + (total_lck)) / 20;
 
         if (RingOfArcanaCount != 0)
@@ -11288,12 +11288,12 @@ public static partial class RandoPatch
                 {
                     rnd -= (Int32)uncommonItemDropRate * (Int32)RingOfArcanaCount;
                 }
-                SoTN.rand(c, m);
+                SoTN_main.rand(c, m);
                 rnd -= (Int32)((c.V0 & 0x1F) + total_lck) / 20;
 
                 if (rnd >= uncommonItemDropRate)
                 {
-                    SoTN.rand(c, m);
+                    SoTN_main.rand(c, m);
                     rnd = (Int32)c.V0 % 28;
                     if (rareItemDropRate == 0)
                     {
@@ -11619,7 +11619,7 @@ public static partial class RandoPatch
         if (StageRoomTableBase[StageId] == 0 || MagicMirrorRoomFilter(c, m))
         {
             c.A0 = 0x6F2;
-            SoTN.PlaySfx(c, m);
+            SoTN_dra.PlaySfx(c, m);
             return;
         }
 
@@ -11781,7 +11781,7 @@ public static partial class RandoPatch
         m.WriteU32((c.SP + 0x14u), c.RA);                       /* 0x8017ADD4  sw          $ra, 0x14($sp) */
         m.WriteU32((c.SP + 0x10u), c.S0);                       /* 0x8017ADDC  sw          $s0, 0x10($sp) */
         c.RA = 0x8017ADE0u;                                     /* 0x8017ADD8  jal         func_8017A47C */
-        SoTN.SetSpriteBank1_w0_045(c, m);                       /* 0x8017ADD8  jal         func_8017A47C */
+        SoTN_w0_045.SetSpriteBank1_w0_045(c, m);                       /* 0x8017ADD8  jal         func_8017A47C */
         c.V0 = 0x80180000u;                                     /* 0x8017ADE0  lui         $v0, 0x8018 */
         c.V0 = m.ReadU32((c.V0 - 0x5C8Cu));                     /* 0x8017ADE4  lw          $v0, -0x5C8C($v0) */
         if (c.V0 == 0u)
@@ -11863,7 +11863,7 @@ public static partial class RandoPatch
         m.WriteU16((c.At + 0x3406u), (ushort)0u);               /* 0x8017AED8  sh          $zero, 0x3406($at) */
         m.WriteU32(c.S0, 0u);                                   /* 0x8017AEE0  sw          $zero, 0x0($s0) */
         c.RA = 0x8017AEE4u;                                     /* 0x8017AEDC  jal         func_8017A584 */
-        SoTN.SetSpeedX_w0_045(c, m);                            /* 0x8017AEDC  jal         func_8017A584 */
+        SoTN_w0_045.SetSpeedX_w0_045(c, m);                            /* 0x8017AEDC  jal         func_8017A584 */
         c.V0 = 0u | 0x00CDu;                                    /* 0x8017AEE8  ori         $v0, $zero, 0xCD */
         goto L8017AF10;                                         /* 0x8017AEE4  j           func_8017AF10 */
     L8017AEEC:;
@@ -11892,7 +11892,7 @@ public static partial class RandoPatch
     L8017AF44:;
         c.A0 = 0u | 0x1000u;                                    /* 0x8017AF48  ori         $a0, $zero, 0x1000 */
         c.RA = 0x8017AF4Cu;                                     /* 0x8017AF44  jal         func_8017A4F4 */
-        SoTN.DecelerateX_w0_045(c, m);                          /* 0x8017AF44  jal         func_8017A4F4 */
+        SoTN_w0_045.DecelerateX_w0_045(c, m);                          /* 0x8017AF44  jal         func_8017A4F4 */
         c.RA = 0x8017AF54u;                                     /* 0x8017AF4C  jal         func_8017A718 */
         Dispatcher.Call(c, m, 0x8017A718u);                     /* 0x8017AF4C  jal         func_8017A718 */
         if (c.V0 == 0u)
@@ -11905,7 +11905,7 @@ public static partial class RandoPatch
             c.A0 = 0x00020000;
         }
         c.RA = 0x8017AF64u;                                     /* 0x8017AF5C  jal         func_8017A584 */
-        SoTN.SetSpeedX_w0_045(c, m);                            /* 0x8017AF5C  jal         func_8017A584 */
+        SoTN_w0_045.SetSpeedX_w0_045(c, m);                            /* 0x8017AF5C  jal         func_8017A584 */
     L8017AF64:;
         c.V0 = 0x80070000u;                                     /* 0x8017AF64  lui         $v0, 0x8007 */
         c.V0 = m.ReadU16((c.V0 + 0x3406u));                     /* 0x8017AF68  lhu         $v0, 0x3406($v0) */
@@ -11977,7 +11977,7 @@ public static partial class RandoPatch
         m.WriteU32((c.SP + 0x14u), c.RA);                       /* 0x8017A8C8  sw          $ra, 0x14($sp) */
         m.WriteU32((c.SP + 0x10u), c.S0);                       /* 0x8017A8D0  sw          $s0, 0x10($sp) */
         c.RA = 0x8017A8D4u;                                     /* 0x8017A8CC  jal         func_8017A47C */
-        SoTN.SetSpriteBank1_w0_045(c, m);                       /* 0x8017A8CC  jal         func_8017A47C */
+        SoTN_w0_045.SetSpriteBank1_w0_045(c, m);                       /* 0x8017A8CC  jal         func_8017A47C */
         c.V0 = 0x80180000u;                                     /* 0x8017A8D4  lui         $v0, 0x8018 */
         c.V0 = m.ReadU32((c.V0 - 0x5C8Cu));                     /* 0x8017A8D8  lw          $v0, -0x5C8C($v0) */
         if (c.V0 == 0u)
@@ -12005,7 +12005,7 @@ public static partial class RandoPatch
         m.WriteU16((c.V1 + 0x5Au), (ushort)c.V0);               /* 0x8017A924  sh          $v0, 0x5A($v1) */
         c.A0 = 0u | 0x2000u;                                    /* 0x8017A92C  ori         $a0, $zero, 0x2000 */
         c.RA = 0x8017A930u;                                     /* 0x8017A928  jal         func_8017A4F4 */
-        SoTN.DecelerateX_w0_045(c, m);                          /* 0x8017A928  jal         func_8017A4F4 */
+        SoTN_w0_045.DecelerateX_w0_045(c, m);                          /* 0x8017A928  jal         func_8017A4F4 */
         c.V0 = 0x80070000u;                                     /* 0x8017A930  lui         $v0, 0x8007 */
         c.V0 = m.ReadU32((c.V0 + 0x2F20u));                     /* 0x8017A934  lw          $v0, 0x2F20($v0) */
         c.V0 = c.V0 & 0x0001u;                                  /* 0x8017A93C  andi        $v0, $v0, 0x1 */
@@ -12055,7 +12055,7 @@ public static partial class RandoPatch
         m.WriteU16((c.At + 0x3404u), (ushort)c.V0);             /* 0x8017A9B4  sh          $v0, 0x3404($at) */
         m.WriteU16(c.S0, (ushort)0u);                           /* 0x8017A9BC  sh          $zero, 0x0($s0) */
         c.RA = 0x8017A9C0u;                                     /* 0x8017A9B8  jal         func_8017A584 */
-        SoTN.SetSpeedX_w0_045(c, m);                            /* 0x8017A9B8  jal         func_8017A584 */
+        SoTN_w0_045.SetSpeedX_w0_045(c, m);                            /* 0x8017A9B8  jal         func_8017A584 */
         c.V0 = 0u | 0x00CDu;                                    /* 0x8017A9C4  ori         $v0, $zero, 0xCD */
         goto L8017AB20;                                         /* 0x8017A9C0  j           func_8017AB20 */
     L8017A9C8:;
@@ -12194,7 +12194,7 @@ public static partial class RandoPatch
         c.A0 = c.A0 - 0x5FC0u;                                  /* 0x8017AB54  addiu       $a0, $a0, -0x5FC0 */
         m.WriteU32((c.SP + 0x10u), c.RA);                       /* 0x8017AB58  sw          $ra, 0x10($sp) */
         c.RA = 0x8017AB64u;                                     /* 0x8017AB5C  jal         func_8017A47C */
-        SoTN.SetSpriteBank1_w0_045(c, m);                       /* 0x8017AB5C  jal         func_8017A47C */
+        SoTN_w0_045.SetSpriteBank1_w0_045(c, m);                       /* 0x8017AB5C  jal         func_8017A47C */
         c.V0 = 0x80180000u;                                     /* 0x8017AB64  lui         $v0, 0x8018 */
         c.V0 = m.ReadU32((c.V0 - 0x5C8Cu));                     /* 0x8017AB68  lw          $v0, -0x5C8C($v0) */
         if (c.V0 == 0u)
@@ -12223,7 +12223,7 @@ public static partial class RandoPatch
         c.A0 = 0x00020000u;                                     /* 0x8017ABB8  lui         $a0, 0x2 */
         c.A0 = c.A0 | 0x8000u;                                  /* 0x8017ABC0  ori         $a0, $a0, 0x8000 */
         c.RA = 0x8017ABC4u;                                     /* 0x8017ABBC  jal         func_8017A584 */
-        SoTN.SetSpeedX_w0_045(c, m);                            /* 0x8017ABBC  jal         func_8017A584 */
+        SoTN_w0_045.SetSpeedX_w0_045(c, m);                            /* 0x8017ABBC  jal         func_8017A584 */
         c.V0 = 0x80070000u;                                     /* 0x8017ABC4  lui         $v0, 0x8007 */
         c.V0 = m.ReadU32((c.V0 + 0x2F20u));                     /* 0x8017ABC8  lw          $v0, 0x2F20($v0) */
         c.V0 = c.V0 & 0x0001u;                                  /* 0x8017ABD0  andi        $v0, $v0, 0x1 */
@@ -12668,6 +12668,8 @@ public static partial class RandoPatch
             {
                 m.WriteU16(0x800974a0, 0x41);
             }
+            if (QualityOfLife.SkipPrologue && m.ReadU32(0x800974a0) == 0x1F)
+                m.WriteU16(0x800974a0, 0x41);
         }
     }
 
