@@ -160,6 +160,10 @@ public sealed class MainActivity : Activity, ISurfaceHolderCallback
                 ?? throw new InvalidOperationException("No writable app files directory"), "mods");
             RecompOne.Runtime.Modding.ModLoader.DefaultRoot = modRoot;
             Directory.CreateDirectory(modRoot);
+            var packRoot = Path.Combine(Path.GetDirectoryName(modRoot)!, "packs");
+            RecompOne.Runtime.Assets.AssetReplacerManager.Instance.DefaultRoot = packRoot;
+            Directory.CreateDirectory(packRoot);
+            Console.WriteLine($"[Activity] packs = '{packRoot}'");
             Console.WriteLine($"[Activity] mods = '{modRoot}'");
             ResolveDiscPath();
             Console.WriteLine($"[Activity] disc = '{Settings.System.DiscPath}'");

@@ -117,8 +117,7 @@ adb push android/mods/dist/android-source-smoke \
   /sdcard/Android/data/com.blacklabelhq.symphonyrecomp/files/mods/
 # Recheck foreground before launching; do not interrupt another game.
 adb shell dumpsys activity activities | rg 'mResumedActivity|topResumedActivity'
-adb shell am start -a android.intent.action.MAIN \
-  -c android.intent.category.LAUNCHER -p com.blacklabelhq.symphonyrecomp
+adb shell am start -n com.blacklabelhq.symphonyrecomp/crc64ccfb01a6ef77ec7c.MainActivity
 # Read existing logs; do not clear the device's logcat buffer.
 adb logcat -d -t 4000 | rg 'AndroidModSmoke|AndroidSourceSmoke|\[Mods\]'
 ```
@@ -164,3 +163,83 @@ dotnet run --project android/tests/RuntimeSmoke -c Release -- "$(mktemp -d)" --l
   force-stop, or other device write was performed. Android DLL loading, Roslyn,
   event execution and reflection preservation still require the documented device
   run. Mac evidence must not be presented as proof of those Android results.
+
+## On-device follow-up (2026-11-08, ET)
+
+The initial untrimmed build exposed .NET 10's native JNI marshal-registration
+failure (`MainActivity.n_onCreate`). Release now explicitly disables
+AndroidEnableMarshalMethods; a clean Java intermediate rebuild was necessary
+when switching that property. Android Roslyn also needs raw metadata when
+Assembly.Location is a nonempty virtual name, not an existing file. The compiler
+now handles that case and resolves bundled platform assemblies by assembly name.
+
+Thor logcat now proves:
+- 1:07:13.974 PM ET: `DLL_LOADED AndroidModSmoke v1`
+- 1:07:15.279 PM ET: `SOURCE_COMPILED_AND_LOADED`
+- 1:07:15.967 PM ET: `EVENT_OK VSyncEvent (no detour required)`
+- 1:07:15.968 PM ET: `SOURCE_EVENT_OK`
+- `DETOUR_UNAVAILABLE System.NotImplementedException` from
+  PlatformTriple.CreateCurrentSystem, confirming the pinned Android limitation.
+
+Blackout revision 00aeb9e was fetched from BlackLabelHQ/BlackoutMod and deployed
+as its original `mod.json` plus `source/Blackout.cs` folder, matching the upstream
+release workflow's filesystem mod bundling rather than embedding source in the
+application. It does not run unchanged: Runtime.View/SaveView were removed by the
+upstream settings rewrite, and it also has native PreHooks on dra.EntityBatEcho
+and dra.EntityBatFireball. The event handlers darken stage/entity palettes; those
+two hooks provide echo/fireball lighting. The mod additionally grants bat/echo/
+visibility relics and 200 maximum MP by default. Do not silently strip those
+hooks and call it equivalent. A full port needs settings migration and a real
+Android hook backend (or an explicit event-based redesign). It remains disabled
+in the device's mod-settings.json after this compatibility test. No save was
+loaded or modified by the mod.
+
+## Writable asset packs
+
+Android's upstream asset manager now uses:
+`/sdcard/Android/data/com.blacklabelhq.symphonyrecomp/files/packs`.
+The Android render loop pumps pending reloads, allowing directory/ZIP changes
+to reload without a native mod hook. This is independent of code-mod enabling.
+
+A pack is a folder or ZIP with `pack.json` at its root. Minimal manifest:
+
+```json
+{"formatVersion":1,"id":"my-pack","name":"My pack","version":"1.0","priority":100}
+```
+
+RGBA textures go under `textures/INDEXHASH.png`, or
+`textures/INDEXHASH_CLUTHASH.png` to match one palette. Each hash is exactly 16
+hex digits. `.idx.png` is for indexed-mode art. Explicit manifest `textures`,
+`cluts`, `sfx` and `xa` entries are also supported; see upstream PackManifest.cs
+and the desktop Asset Pack Editor. Optional root `packs.json` uses `order` and
+`disabled` arrays to select priority and turn packs off. Pack ZIPs are not code
+mods; put them in packs, not mods.
+
+Run `python3 android/packs/make-test-pack.py` to generate the original neon
+checker marker under `android/packs/dist/android-title-marker`. Its target is one
+observed title/menu texture/palette; it contains no extracted game pixels. Upload
+its texture first and pack.json last, or upload a complete ZIP, so discovery
+cannot see half-written content. Do not redistribute locally dumped game art.
+
+Public reference links:
+- https://github.com/BlackLabelHQ/SymphonyRecomp/releases
+- https://github.com/BlackLabelHQ/RecompOne/blob/master/RecompOne.Runtime/Assets/PackManifest.cs
+- https://github.com/BlackLabelHQ/RecompOne/blob/master/RecompOne.Runtime/Host/Window/Tools/AssetPackEditor.cs
+
+Two public searches found no verified SymphonyRecomp community asset-pack
+release to recommend. Unrelated emulator or Banjo packs are not presumed
+compatible; no unknown pack downloads were made.
+
+Asset replacement proof: at 1:10:47.300 PM ET, logcat reported
+`android-title-marker: loaded texture ...ac6d04dd968b34ca_58ea135bbf174f98.png 255x144`.
+The original green/magenta/cyan checker is visibly present behind the title logo
+in `../screens/sotn-title-marker-pack.png` (outside this source checkout). The
+first page-fallback probe loaded but was not useful visual proof; the second
+probe matches an actual visible source tile. Both test packs are disabled in
+packs.json after the demonstration, with files retained. The smoke code mods
+and incompatible Blackout are likewise disabled after proof, not deleted.
+
+The Thor routes a default HOME key to the focused secondary display. Use
+`adb shell input -d 0 keyevent HOME` for the primary game display. This device
+may show the Android launcher chooser because its primary default Home is unset;
+no default or other-app settings were changed.

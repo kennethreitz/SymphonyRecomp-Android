@@ -17,3 +17,7 @@ shaders/
 
 # Generated Android mod examples
 /android/mods/dist/
+
+!/android/packs/
+!/android/packs/make-test-pack.py
+/android/packs/dist/

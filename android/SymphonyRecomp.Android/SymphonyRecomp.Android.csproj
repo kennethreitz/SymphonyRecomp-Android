@@ -26,6 +26,8 @@
     <PublishTrimmed>false</PublishTrimmed>
     <AndroidLinkMode>None</AndroidLinkMode>
     <AndroidUseInterpreter>false</AndroidUseInterpreter>
+    <!-- .NET 10 untrimmed JIT: use managed JNI registration, not broken native marshal stubs. -->
+    <AndroidEnableMarshalMethods>false</AndroidEnableMarshalMethods>
     <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
     <EnableLLVM>false</EnableLLVM>
   </PropertyGroup>
