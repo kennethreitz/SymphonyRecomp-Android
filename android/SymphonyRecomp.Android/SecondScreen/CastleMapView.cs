@@ -27,7 +27,8 @@ public sealed class CastleMapView : View
     readonly Typeface _titleFont = Typeface.Create("serif", TypefaceStyle.Bold)!;
     readonly Typeface _bodyFont = Typeface.Create("sans-serif", TypefaceStyle.Normal)!;
     static readonly Color Gold = new(178, 143, 84), Ink = new(13, 12, 20), Muted = new(139, 133, 143);
-    static readonly string[] Tabs = ["STATUS", "MAP", "JOURNAL"];
+    static readonly string[] Tabs = ["STATUS", "MAP", "JOURNAL", "MODS"];
+    int _modPage;
     long _lastCapture;
     bool _subscribed, _reportedError;
     bool? _reportedCastle;
@@ -191,13 +192,14 @@ public sealed class CastleMapView : View
         Text(canvas, frame == null ? "NO SIGNAL" : "LIVE / READ ONLY", 755, 95, 16, Muted);
         for (int i = 0; i < Tabs.Length; i++)
         {
-            float x = 42 + i * 306;
-            Panel(canvas, x, 122, x + 296, 182, i == _page ? new Color(65, 32, 47) : Ink,
+            float x = 42 + i * 232;
+            Panel(canvas, x, 122, x + 220, 182, i == _page ? new Color(65, 32, 47) : Ink,
                 i == _page ? Gold : new Color(64, 49, 59));
-            Text(canvas, Tabs[i], x + 92, 160, 24, i == _page ? Gold : Muted, true);
+            Text(canvas, Tabs[i], x + 54, 160, 24, i == _page ? Gold : Muted, true);
         }
         Panel(canvas, 42, 200, 958, 798, new Color(8, 9, 16), new Color(68, 58, 71));
-        if (frame == null)
+        if (_page == 3) DrawMods(canvas);
+        else if (frame == null)
         {
             Text(canvas, "The castle awaits.", 250, 409, 36, Gold, true);
             Text(canvas, "Load a save or enter a stage on the upper screen.", 180, 457, 23, Muted);
@@ -327,11 +329,48 @@ public sealed class CastleMapView : View
         Text(c, "Map percentage and named music archive: planned.", 78, 689, 20, Muted);
     }
 
+    void FieldText(Canvas c,string text,float x,float y,float width,Color color)
+    {
+        _chrome.TextSize=22;_chrome.SetTypeface(_bodyFont);
+        if(_chrome.MeasureText(text)>width)
+        {
+            while(text.Length>0 && _chrome.MeasureText(text+"...")>width)text=text[..^1];
+            text+="...";
+        }
+        Text(c,text,x,y,22,color);
+    }
+
+    void DrawMods(Canvas c)
+    {
+        var pages=GearProviders.Snapshot().SelectMany(card =>
+            (card.Fields.Count==0 ? new[] { Array.Empty<GearField>() } : card.Fields.Chunk(9))
+            .Select(fields => new GearCard(card.Title,fields))).ToArray();
+        if(pages.Length==0)
+        {
+            Text(c,"NO MOD PROVIDERS",78,250,28,Gold,true);
+            Text(c,"Enable a companion provider in mod-settings.json.",78,310,22,Muted);
+            return;
+        }
+        if(_modPage>=pages.Length)_modPage=0;
+        var page=pages[_modPage];
+        Text(c,page.Title,78,246,27,Gold,true);
+        for(int i=0;i<page.Fields.Count;i++)
+        {
+            float y=300+i*45;
+            if(i%2==0)Panel(c,66,y-29,934,y+9,new Color(18,17,26),new Color(30,27,37));
+            FieldText(c,page.Fields[i].Name,78,y,490,Muted);
+            FieldText(c,page.Fields[i].Value,606,y,310,Color.LightGray);
+        }
+        Panel(c,66,732,260,788,Ink,Gold);Panel(c,740,732,934,788,Ink,Gold);
+        Text(c,"PREVIOUS",93,768,22,Gold,true);Text(c,"NEXT",800,768,22,Gold,true);
+        Text(c,$"CARD PAGE {_modPage+1} / {pages.Length}",365,768,19,Muted);
+    }
+
     int TabAt(float rawX, float rawY)
     {
         float x = (rawX - _uiLeft) / _uiScale, y = (rawY - _uiTop) / _uiScale;
         if (y < 122 || y > 182) return -1;
-        for (int i = 0; i < Tabs.Length; i++) if (x >= 42 + i * 306 && x <= 338 + i * 306) return i;
+        for (int i = 0; i < Tabs.Length; i++) if (x >= 42 + i * 232 && x <= 262 + i * 232) return i;
         return -1;
     }
 
@@ -382,6 +421,12 @@ public sealed class CastleMapView : View
                 else _viewport.ScaleBy(_mapControl == 0 ? .5f : 2f);
                 Console.WriteLine($"[CastleGear] MAP_ZOOM {_viewport.Zoom}x center={_viewport.CenterX},{_viewport.CenterY}");
                 Invalidate(); PerformClick();
+            }
+            if (_page == 3 && tab < 0 && y >= 732 && y <= 788)
+            {
+                if (x >= 740 && x <= 934) _modPage++;
+                else if (x >= 66 && x <= 260) _modPage=Math.Max(0,_modPage-1);
+                Invalidate();
             }
             _touchTab = _mapControl = -1; _mapDrag = false; _pinchSpan = 0;
         }

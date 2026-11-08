@@ -1,0 +1,7 @@
+{
+  "id": "castle-gear-plus",
+  "name": "Castle Gear Plus",
+  "version": "1.0.0",
+  "description": "Read-only event-based companion cards. No detours or save writes.",
+  "defaultEnabled": false
+}

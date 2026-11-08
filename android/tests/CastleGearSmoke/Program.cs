@@ -108,4 +108,75 @@ Check(described is {CharacterId:1,Words:8},"Richter/overlay negative animation b
 portraitHalves[0x80097d22]=500;
 Check(PlayerPortrait.Describe(a=>portraitWords.GetValueOrDefault(a),a=>portraitHalves.GetValueOrDefault(a))==null,"out-of-bounds sprite readback is rejected");
 
+// Generic push API ownership, bounds and immutability without Android or a ROM.
+using(var provider=GearProviders.Register("test"))
+{
+    var fields=new List<GearField>{new("Alpha\n","One")};
+    provider.Publish(new GearCard("CARD",fields));
+    fields[0]=new("Changed","Two");
+    Check(GearProviders.Snapshot()[0].Fields[0]==new GearField("Alpha","One"),"provider publication copies and sanitizes caller data");
+    bool duplicate=false;try{GearProviders.Register("TEST");}catch(InvalidOperationException){duplicate=true;}
+    Check(duplicate,"provider IDs are unique case-insensitively");
+    provider.Publish(new GearCard(new string('t',100),Enumerable.Range(0,100).Select(i=>new GearField(new string('n',100),new string('v',200))).ToArray()));
+    var card=GearProviders.Snapshot()[0];
+    Check(card.Title.Length==48 && card.Fields.Count==64 && card.Fields[0].Name.Length==40 && card.Fields[0].Value.Length==96,"provider payload sizes are bounded");
+    provider.Publish();
+    Check(GearProviders.Snapshot().Count==0,"empty publication removes provider cards");
+}
+Check(GearProviders.Snapshot().Count==0,"unload removes provider cards");
+var disposed=GearProviders.Register("test");disposed.Dispose();disposed.Dispose();
+bool rejected=false;try{disposed.Publish();}catch(ObjectDisposedException){rejected=true;}
+Check(rejected,"disposed publisher cannot resurrect cards");
+var tracker=new CastleGearPlusData.PlusTracker();
+var sample=new CastleGearPlusData.PlusSample(2,3,1,12,0,0,100,73,73,84,53,7,30,1u<<10);
+tracker.Observe(sample);
+Check(tracker.SessionKills==0 && tracker.HpLost==0 && tracker.ActiveTicks==0,"first live sample establishes baselines without counting loaded stats");
+tracker.Observe(sample with {Clock=101,Hp=68,Kills=86,RelicMask=(1u<<10)|(1u<<11)});
+Check(tracker.SessionKills==2 && tracker.HpLost==5 && tracker.LastHpLoss==5 && tracker.ActiveTicks==1,"consecutive native frames count kills, observed HP loss and active time");
+tracker.Observe(sample with {Clock=102,Hp=73,Kills=86});
+Check(tracker.HpLost==5,"healing is not negative damage");
+tracker.Observe(sample with {Clock=103,Hp=10,HpMax=10,Kills=86});
+Check(tracker.HpLost==5,"max-HP changes are not counted as damage");
+tracker.Observe(sample with {Clock=104,Hp=2,RoomX=8,Kills=86});
+Check(tracker.HpLost==5,"room transitions do not produce spurious damage");
+tracker.Observe(sample with {Clock=110,Hp=1,Kills=86});
+Check(tracker.HpLost==5,"skipped native frames are not inferred as damage");
+long before=tracker.ActiveTicks;
+tracker.Observe(sample with {Clock=111,Engine=2});
+tracker.Observe(sample with {Clock=500,Hp=1,Kills=100});
+Check(tracker.HpLost==5 && tracker.SessionKills==2 && tracker.ActiveTicks==before,"menus and resume reset baselines instead of counting loaded deltas");
+tracker.BreakContinuity();tracker.Observe(sample with {Clock=501,Hp=1,Kills=200});
+Check(tracker.SessionKills==2,"save-loaded/new-player event breaks continuity");
+tracker.Observe(sample with {Clock=502,Stage=1,Kills=200});
+Check(tracker.AreaTicks.Count==2 && tracker.AreaTicks[1]==1,"active time is attributed independently to each area");
+tracker.Observe(sample with {State=3});tracker.Observe(sample with {State=3});
+Check(tracker.GameOvers==1,"game-over transition counted once, not every VSync");
+tracker.SaveCreated();
+Check(tracker.SaveSnapshots==1,"native save-snapshot event count is distinct from disk-write success");
+Check(CastleGearPlusData.PlusTracker.Completion(53)=="5.6%" && CastleGearPlusData.PlusTracker.Completion(942)=="100.0%" && CastleGearPlusData.PlusTracker.Completion(1890)=="200.6%","map completion matches native integer tenths including both castles");
+var cards=tracker.Cards(id=>"Area "+id);
+var checklist=cards.Single(c=>c.Title.StartsWith("RELIC CHECKLIST"));
+Check(checklist.Fields.Count==28 && checklist.Fields.Single(f=>f.Name=="Cube of Zoe").Value=="HAVE" && checklist.Fields.All(f=>!f.Name.StartsWith("JP")),"US checklist includes 28 obtainable relics and tests found bit");
+Check(!(sample with {Demo=1}).Active && !(sample with {Stage=31}).InStage,"demo and Richter prologue are excluded from castle telemetry");
+var sampleWords=new Dictionary<uint,uint>{[0x8003C734]=2,[0x80073060]=3,[0x8003C9A4]=1,[0x800974A0]=12,[0x80097C30]=1,[0x80097C34]=2,[0x80097C38]=3,[0x80097C3C]=4,[0x80097BF4]=84,[0x8003C760]=53,[0x80097BA0]=73,[0x80097BA4]=73,[0x800730B0]=7,[0x800730B4]=30};
+var read=CastleGearPlusData.PlusSample.Read(a=>sampleWords.GetValueOrDefault(a),a=>(byte)(a==0x8009796e?3:0));
+Check(read.Clock==223384 && read.Kills==84 && read.Rooms==53 && read.RelicMask==(1u<<10) && read.RoomY==30,"US telemetry addresses, native play clock and relic found flags are independently sampled");
+
+var dedup=new CastleGearPlusData.PlusTracker();dedup.Observe(sample);
+dedup.Observe(sample with {Hp=68,Kills=85});
+dedup.Observe(sample with {Clock=101,Hp=68,Kills=85});
+Check(dedup.HpLost==5 && dedup.SessionKills==1 && dedup.ActiveTicks==1,"duplicate VSync within one native frame cannot erase the comparison baseline");
+dedup.Observe(sample with {State=1});dedup.Observe(sample with {State=3,Demo=1});
+Check(dedup.GameOvers==0,"title/demo game-over transitions cannot count as a player death");
+
+var seeded=Path.Combine(AppContext.BaseDirectory,"bundle-test-"+Guid.NewGuid().ToString("N"));
+SymphonyRecomp.Android.BundledMods.Seed(seeded);
+string deployed=Path.Combine(seeded,"CastleGearPlus");
+Check(File.Exists(Path.Combine(deployed,"mod.json")) && File.Exists(Path.Combine(deployed,"PlusTracker.cs")) && File.Exists(Path.Combine(deployed,"CastleGearPlus.cs")),"bundled source deploys through app-owned storage");
+File.WriteAllText(Path.Combine(deployed,"PlusTracker.cs"),"user source");
+File.WriteAllText(Path.Combine(seeded,"mod-settings.json"),"user settings");
+SymphonyRecomp.Android.BundledMods.Seed(seeded);
+Check(File.ReadAllText(Path.Combine(deployed,"PlusTracker.cs"))=="user source","bundled source never overwrites user edits");
+Check(File.ReadAllText(Path.Combine(seeded,"mod-settings.json"))=="user settings","bundled source does not enable mods or change settings");
+
 Console.WriteLine($"Castle Gear: {checks} ROM-free checks passed");
