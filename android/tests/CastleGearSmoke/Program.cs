@@ -75,4 +75,5 @@ Check(RecompOne.Runtime.Hle.PsxPixel.FromRgba8(255,0,0,255)==0x801f,"guaranteed 
 Check(RecompOne.Runtime.Hle.PsxPixel.FromRgba8(0,255,0,0)==0x03e0,"RGBA8 readback converts green without alpha");
 for(int v=0;v<32;v++) { byte expanded=(byte)((v*255+15)/31); Check((RecompOne.Runtime.Hle.PsxPixel.FromRgba8(expanded,0,0,0)&31)==v,"all 5-bit channels round trip through RGBA8 "+v); }
 Check(CastleMapFrame.ClutOrigin(0x3d20)==(512,244),"map CLUT origin decoded from the game CLUT id, never hardcoded");
+Check(CastleMapFrame.MapClutAddress==0x8003C484,"InitFade logical map palette 0x1c0 resolves through g_ClutIds");
 Console.WriteLine($"Castle Gear: {checks} ROM-free checks passed");

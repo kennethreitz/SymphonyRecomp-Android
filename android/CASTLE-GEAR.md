@@ -20,8 +20,9 @@ src/dra/5087C.c and 624DC.c. The decoder is original code using layout facts.
   high pair first. Low bit is explored; high bit is bought/known map.
 - Cells have a four-pixel pitch, not the old five-pixel tracker-art pitch.
 - Live GPU map: VRAM (832,256), 64 words x 256 rows, four pixels/word.
-- Actual map CLUT: read g_ClutIds[0x160] at RAM 0x8003C3C4. Decode its
-  VRAM origin from the live PSX CLUT id; do not assume a fixed VRAM row.
+- Actual map CLUT: read g_ClutIds[0x1c0] at RAM 0x8003C484. Decode its
+  VRAM origin from the live PSX CLUT id. InitFade stores logical palette index
+  0x1c0 in Primitive.clut; it is not the packed PSX CLUT id 0x1c0.
 - GLES readback uses guaranteed RGBA/UNSIGNED_BYTE and converts to BGR555.
   Packed RGB5_A1 ReadPixels is not guaranteed and failed on the Thor.
 - Explored counts include visited cells only. Charted-only counts include bought
