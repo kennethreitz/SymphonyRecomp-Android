@@ -161,12 +161,14 @@ check the remaining shader interface, but is not a substitute for the device.
 
 ### Signing and save safety
 
-Read-only inspection found that the installed package is signed by a different
-debug certificate from this Mac's `~/.android/debug.keystore`. A build signed by
-the Mac key cannot update that installed package in-place. Do not uninstall to
-work around it. Recover the original signing key or plan an approved side-by-side
-package/save migration first. No install, uninstall, app launch, save copy, or
-Thor setting change is part of this sync.
+Read-only inspection found that `~/.android/debug.keystore` does not match the
+installed package. However, the actual .NET-built JIT Release APK DOES match the
+installed package's SHA-256 signing certificate exactly:
+`e35962d0b9609c198ec27b54a84e8e8d8cf8cde215c680ac267477051f259753`.
+The .NET toolchain is using a different signing identity from that particular
+keystore file. Signing is therefore not a blocker for an approved in-place
+update with this verified artifact. Do not uninstall. No install, uninstall, app
+launch, save copy, or Thor setting change is part of this sync.
 
 ### Build results for this sync
 
@@ -188,3 +190,13 @@ dotnet build android/SymphonyRecomp.Android -c Release \
 `RunAOTCompilation` is the supported Mono/.NET 10 switch, documented at
 https://learn.microsoft.com/en-us/dotnet/android/building-apps/build-properties#runaotcompilation.
 Do not interpret a successful package build as a hardware test.
+
+The JIT Release build succeeded and produced
+`android/SymphonyRecomp.Android/bin/Release/net10.0-android/com.blacklabelhq.symphonyrecomp-Signed.apk`
+(26,991,864 bytes). Its signature was verified with `apksigner`, and the package
+contains no AOT `.dll.so` libraries. The final build also used
+`-p:RunAnalyzers=false`; the earlier full-AOT attempt completed the C# analyzer
+phase before failing in the native assembler. The final desktop Release build
+and settings/shader-contract smoke tests passed. The primitive shader's
+non-framebuffer-fetch syntax fixture and both presentation shaders passed
+`glslangValidator`; actual framebuffer-fetch behavior remains device-untested.
