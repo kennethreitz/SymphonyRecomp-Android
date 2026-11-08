@@ -3,7 +3,6 @@ using Android.Content.PM;
 using Android.Hardware.Display;
 using Android.OS;
 using Android.Views;
-using Android.Widget;
 using RecompOne.Runtime.Config;
 using RecompOne.Runtime.Host;
 using RecompOne.Runtime.Memory;
@@ -28,10 +27,6 @@ public sealed class MainActivity : Activity, ISurfaceHolderCallback
     SurfaceView? _surfaceView;
     Thread? _gameThread;
     volatile bool _started;
-    TextView? _playbackIndicator;
-    Handler? _playbackHandler;
-    Action? _playbackTick;
-    bool _playbackPolling;
 
     protected override void OnCreate(Bundle? savedInstanceState)
     {
@@ -46,31 +41,7 @@ public sealed class MainActivity : Activity, ISurfaceHolderCallback
 
         _surfaceView = new SurfaceView(this);
         _surfaceView.Holder!.AddCallback(this);
-        var root = new FrameLayout(this);
-        root.AddView(_surfaceView, new FrameLayout.LayoutParams(-1,-1));
-        _playbackIndicator = new TextView(this) { TextSize = 16, Clickable = false, Focusable = false };
-        _playbackIndicator.SetTextColor(new global::Android.Graphics.Color(220,190,130));
-        _playbackIndicator.SetPadding(16,8,16,8);
-        var badge = new global::Android.Graphics.Drawables.GradientDrawable();
-        badge.SetColor(new global::Android.Graphics.Color(220,14,10,20));
-        badge.SetCornerRadius(10); badge.SetStroke(2,new global::Android.Graphics.Color(178,143,84));
-        _playbackIndicator.Background = badge;
-        _playbackIndicator.Visibility = ViewStates.Gone;
-        root.AddView(_playbackIndicator, new FrameLayout.LayoutParams(-2,-2, GravityFlags.Top | GravityFlags.Right)
-            { TopMargin = 24, RightMargin = 24 });
-        SetContentView(root);
-        _playbackHandler = new Handler(Looper.MainLooper!);
-        _playbackTick = () =>
-        {
-            if (!_playbackPolling) return;
-            var state = PlaybackControls.State;
-            string text = state.Indicator;
-            if (state.FastForward && !state.Locked && state.LockProgress > 0)
-                text += $"  HOLD {state.LockProgress*3:0.0}/3s";
-            _playbackIndicator.Text = text;
-            _playbackIndicator.Visibility = text.Length == 0 ? ViewStates.Gone : ViewStates.Visible;
-            _playbackHandler.PostDelayed(_playbackTick!,100);
-        };
+        SetContentView(_surfaceView);
 
         // After SetContentView: the DecorView does not exist until the content
         // view is set, and InsetsController comes off the DecorView.
@@ -267,15 +238,10 @@ public sealed class MainActivity : Activity, ISurfaceHolderCallback
         base.OnResume();
         GoImmersive();
         if (_mapPresentation == null) ShowMapOnSecondScreen();
-        if (!_playbackPolling && _playbackTick != null)
-        { _playbackPolling = true; _playbackHandler?.Post(_playbackTick); }
     }
 
     protected override void OnPause()
     {
-        AndroidInput.Reset();
-        _playbackPolling = false;
-        if (_playbackTick != null) _playbackHandler?.RemoveCallbacks(_playbackTick);
         try { _mapPresentation?.Dismiss(); } catch { /* display already gone */ }
         _mapPresentation = null;
         base.OnPause();

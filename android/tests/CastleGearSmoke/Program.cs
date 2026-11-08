@@ -63,14 +63,4 @@ viewport.PanBy(999,-999); Check(viewport.CenterX==128 && viewport.CenterY==128,"
 viewport.ScaleBy(2); viewport.PanBy(30,-20); Check(viewport.Zoom==2 && viewport.CenterX==158 && viewport.CenterY==108,"zoomed drag pans in source-pixel coordinates");
 viewport.ScaleBy(100); viewport.PanBy(999,-999); Check(viewport.Zoom==8 && viewport.CenterX==240 && viewport.CenterY==16,"zoom and pan are bounded");
 viewport.Reset(); Check(viewport.Zoom==1 && viewport.CenterX==128 && viewport.CenterY==128,"FIT resets zoom and pan");
-var keys = new RecompOne.Runtime.Host.PlaybackKeyState();
-keys.Right(true,0); Check(keys.Read(100).FastForward && !keys.Read(100).Locked,"R3 momentary fast-forward immediately");
-keys.Right(false,200); Check(!keys.Read(201).FastForward,"short R3 release stops fast-forward");
-keys.Right(true,1000); Check(keys.Read(2500).LockProgress==.5f,"R3 3-second lock progress");
-keys.Right(false,4001); Check(keys.Read(4002).FastForward && keys.Read(4002).Locked,"3-second hold latches after release");
-keys.Right(true,5000); Check(!keys.Read(9000).FastForward && !keys.Read(9000).Locked,"next R3 press unlocks and cannot relatch until released");
-keys.Right(false,9001); keys.Right(true,10000); keys.Left(true);
-Check(!keys.Read(10001).FastForward && keys.Read(10001).Indicator=="<< UNAVAILABLE","L3 is explicit unavailable, never a false rewind");
-keys.Left(false); Check(keys.Read(10002).FastForward,"L3 release resumes held FF");
-keys.Reset(); Check(!keys.Read(20000).FastForward && !keys.Read(20000).Locked,"background/reset clears all playback holds and latch");
 Console.WriteLine($"Castle Gear: {checks} ROM-free checks passed");

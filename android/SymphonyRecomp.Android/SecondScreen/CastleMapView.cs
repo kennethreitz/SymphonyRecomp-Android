@@ -167,10 +167,7 @@ public sealed class CastleMapView : View
         Text(canvas, DateTime.Now.ToString("ddd HH:mm"), 755, 59, 22, Color.LightGray);
         var frame = Volatile.Read(ref _frame);
         Text(canvas, Area(frame), 70, 97, 24, Color.LightGray);
-        var playback = PlaybackControls.State;
-        string signal = playback.Indicator.Length > 0 ? playback.Indicator : frame == null ? "NO SIGNAL" : "LIVE / READ ONLY";
-        if (playback.FastForward && !playback.Locked) signal += $" {playback.LockProgress:P0}";
-        Text(canvas, signal, 755, 95, 16, playback.Indicator.Length > 0 ? Gold : Muted);
+        Text(canvas, frame == null ? "NO SIGNAL" : "LIVE / READ ONLY", 755, 95, 16, Muted);
         for (int i = 0; i < Tabs.Length; i++)
         {
             float x = 42 + i * 306;
