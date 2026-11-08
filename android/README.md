@@ -1,7 +1,9 @@
 # SymphonyRecomp — Android
 
 Android port targeting the **AYN Thor** (Snapdragon 8 Gen 2 / Adreno 740). Boots
-straight into gameplay with widescreen — no menus, no mod system, no debug UI.
+straight into gameplay with widescreen — no desktop menus or debug UI.
+The Android mod branch enables the upstream loader for trusted DLL/source mods;
+see [MODS.md](MODS.md) for scope, setup, and the native-detour limitation.
 
 ## Prerequisites
 
@@ -26,8 +28,9 @@ dotnet run --project RecompOne/RecompOne.Recompiler config/sotn.json
 dotnet build android/SymphonyRecomp.Android -c Release
 ```
 
-Release enables AOT. That is only possible because the mod system is excluded —
-Roslyn and MonoMod both need a JIT, and nothing else in the runtime does.
+Release on this mod branch uses Mono JIT and disables trimming. Runtime-loaded
+code and reflection need their IL/metadata preserved. Full AOT also previously
+failed on the generated game assembly; do not turn it back on for code mods.
 
 ## Installing the disc
 
@@ -58,7 +61,7 @@ adb logcat -s SymphonyRecomp DOTNET
 | Audio | OpenAL Soft | `AudioTrack` |
 | Input | SDL GameController | Android key/motion events |
 | UI | ImGui panels, menus, settings | None |
-| Mods | Roslyn + MonoMod detours | Excluded, which is what allows AOT |
+| Mods | Roslyn + MonoMod detours | DLL/source loader + event APIs; native detours unsupported by pinned MonoMod |
 
 `Silk.NET.Windowing.Sdl.Android` was the obvious route and is **not usable** — it
 last shipped 2.10.1 in Nov 2021, targets `MonoAndroid9.0`, and pins Silk.NET to
@@ -128,8 +131,9 @@ sources. It is not hardware-validated and has not been installed.
 - Desktop Slang post-processing/UI-layer extraction remains disabled on GLES.
 - The conservative 4:3 prologue gate remains until tested with new room art.
 - Upstream room extensions/fills and translation data paths are registered.
-  Translation packs containing C# extensions still need the mod system.
-- The Android mod loader remains a no-op. No code-mod support was enabled.
+  On the mod branch, C# translation extensions use the restored real mod loader.
+- The original merge baseline left mods stubbed. The subsequent Android mod
+  branch restores the loader; see [MODS.md](MODS.md).
 
 On this Mac, the pre-existing Android workload is in `$HOME/.dotnet`, not the
 system `dotnet`. Build using that SDK and the existing SDK/JDK paths:
@@ -179,7 +183,7 @@ of range` at ARM64 `bl .Lp_*` instructions. This is a native AOT code-size/branc
 range failure, not a missing SDK or unresolved C# symbol. The previous hardware
 verification above was also JIT-only.
 
-Build a JIT Release package explicitly without changing the project's AOT policy:
+Build a JIT Release package explicitly (also the mod branch's default policy):
 
 ```bash
 dotnet build android/SymphonyRecomp.Android -c Release \

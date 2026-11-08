@@ -104,13 +104,9 @@ public static class GameLanguage
 
     private static void ApplyExtensions(string? root)
     {
-#if !ANDROID
         if (root == null) ModLoader.UnloadScripts(Owner);
         else ModLoader.LoadScripts(Owner, Path.Combine(root, "code"));
-#else
-        if (root != null && Directory.Exists(Path.Combine(root, "code")))
-            Console.Error.WriteLine("[translation] Script extensions are not supported on Android; data-only translations remain available.");
-#endif
+
 
         var textures = root == null ? null : Path.Combine(root, "textures");
         if (textures != null && Directory.Exists(textures))

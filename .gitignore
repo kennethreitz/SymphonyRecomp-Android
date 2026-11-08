@@ -14,3 +14,6 @@ mods/.cache
 packs/
 translations/
 shaders/
+
+# Generated Android mod examples
+/android/mods/dist/

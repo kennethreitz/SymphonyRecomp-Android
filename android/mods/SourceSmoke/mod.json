@@ -1,0 +1,7 @@
+{
+  "id": "android-source-smoke",
+  "name": "Android Roslyn smoke test",
+  "version": "1.0.0",
+  "description": "Log-only source compilation and event test.",
+  "defaultEnabled": true
+}

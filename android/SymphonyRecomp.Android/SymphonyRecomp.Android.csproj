@@ -8,7 +8,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>$(NoWarn);CS0162;CS0219;CS0649;CS0414</NoWarn>
-    <DefineConstants>$(DefineConstants);ANDROID;NO_MODS</DefineConstants>
+    <DefineConstants>$(DefineConstants);ANDROID</DefineConstants>
 
     <ApplicationId>com.blacklabelhq.symphonyrecomp</ApplicationId>
     <ApplicationVersion>1</ApplicationVersion>
@@ -19,12 +19,14 @@
     <RuntimeIdentifiers>android-arm64</RuntimeIdentifiers>
   </PropertyGroup>
 
-  <!-- No mod system means no Roslyn and no MonoMod, so nothing needs a JIT and
-       the recompiled MIPS can go through AOT. This is the main perf lever. -->
+  <!-- Code mods use runtime-loaded IL and generated detour trampolines. -->
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-    <RunAOTCompilation>true</RunAOTCompilation>
+    <RunAOTCompilation>false</RunAOTCompilation>
+    <!-- Runtime-loaded mods need untrimmed reflection targets and Mono JIT. -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <AndroidLinkMode>None</AndroidLinkMode>
+    <AndroidUseInterpreter>false</AndroidUseInterpreter>
     <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
-    <AndroidLinkMode>SdkOnly</AndroidLinkMode>
     <EnableLLVM>false</EnableLLVM>
   </PropertyGroup>
 

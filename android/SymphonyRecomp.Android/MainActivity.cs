@@ -156,6 +156,11 @@ public sealed class MainActivity : Activity, ISurfaceHolderCallback
                 Console.WriteLine($"[Activity] config root = {files}");
             }
 
+            var modRoot = Path.Combine(GetExternalFilesDir(null)?.AbsolutePath ?? files
+                ?? throw new InvalidOperationException("No writable app files directory"), "mods");
+            RecompOne.Runtime.Modding.ModLoader.DefaultRoot = modRoot;
+            Directory.CreateDirectory(modRoot);
+            Console.WriteLine($"[Activity] mods = '{modRoot}'");
             ResolveDiscPath();
             Console.WriteLine($"[Activity] disc = '{Settings.System.DiscPath}'");
             WidescreenPatch.Register();
