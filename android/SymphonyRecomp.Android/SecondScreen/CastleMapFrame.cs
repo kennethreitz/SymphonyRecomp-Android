@@ -10,7 +10,8 @@ public sealed record CastleMapFrame(int[] Pixels, bool Inverted, int Explored,
     public const int Grid = 64;
     public const uint FlagsAddress = 0x8006BB74;
     public const int VramX = 832, VramY = 256, VramRowWords = 64;
-    public const int PaletteX = 0, PaletteY = 7; // PSX CLUT id 0x1c0
+    public const uint MapClutAddress = 0x8003C104 + 0x160 * 2; // g_ClutIds[0x160]
+    public static (int X, int Y) ClutOrigin(ushort clut) => ((clut & 0x3f) * 16, clut >> 6);
 
     // Four cells per byte, high pair first. Separate 0x400-byte castle banks.
     public static int StateAt(ReadOnlySpan<byte> flags, int x, int y, bool inverted)

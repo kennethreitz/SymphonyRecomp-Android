@@ -66,8 +66,8 @@ public sealed class CastleMapView : View
         {
             var mem = GameRuntime.Mem;
             var vram = GameRuntime.Gpu?.Vram;
-            // The blueprint address is reused outside stages. Never interpret a
-            // title/menu/movie buffer or an incomplete stage load as a castle map.
+            // Never interpret title/menu/movie buffers or an incomplete stage
+            // load as a castle map.
             if (mem == null || vram == null || mem.ReadU32(0x8003C734) != 2 ||
                 mem.ReadU32(0x80073060) != 3 || mem.ReadU32(0x800974A0) == 0x1f)
             {
@@ -77,6 +77,7 @@ public sealed class CastleMapView : View
             bool inverted = (mem.ReadU32(0x800974A0) & 0x20) != 0;
             for (int i = 0; i < _flags.Length; i++)
                 _flags[i] = mem.ReadU8(CastleMapFrame.FlagsAddress + (uint)i);
+            var (clutX, clutY) = CastleMapFrame.ClutOrigin(mem.ReadU16(CastleMapFrame.MapClutAddress));
             // HLE rendering owns the authoritative VRAM texture. The CPU shadow
             // is stale until StoreImage reads it back; use the supported GPU queue.
             GpuJobs.Run(() =>
@@ -86,14 +87,14 @@ public sealed class CastleMapView : View
                 {
                     backend.ReadVram(CastleMapFrame.VramX, CastleMapFrame.VramY,
                         CastleMapFrame.VramRowWords, CastleMapFrame.Size, _map);
-                    backend.ReadVram(CastleMapFrame.PaletteX, CastleMapFrame.PaletteY, 16, 1, _palette);
+                    backend.ReadVram(clutX, clutY, 16, 1, _palette);
                 }
                 else
                 {
                     for (int y = 0; y < CastleMapFrame.Size; y++)
                         Array.Copy(vram, (CastleMapFrame.VramY + y) * 1024 + CastleMapFrame.VramX,
                             _map, y * CastleMapFrame.VramRowWords, CastleMapFrame.VramRowWords);
-                    Array.Copy(vram, CastleMapFrame.PaletteY * 1024, _palette, 0, 16);
+                    Array.Copy(vram, clutY * 1024 + clutX, _palette, 0, 16);
                 }
             });
             int playerX = (int)mem.ReadU32(0x800730B0) + ((int)mem.ReadU32(0x800973F0) >> 8);
@@ -104,7 +105,7 @@ public sealed class CastleMapView : View
             Volatile.Write(ref _frame, new GearFrame(frame, status));
             if (_reportedCastle != inverted)
             {
-                Console.WriteLine($"[MapV2] LIVE_BITMAP FLAGS=8006bb74 VRAM=832,256 CLUT=0,7 " +
+                Console.WriteLine($"[MapV2] LIVE_BITMAP FLAGS=8006bb74 VRAM=832,256 CLUT={clutX},{clutY} " +
                     $"inverted={inverted} explored={frame.Explored} known={frame.Known} " +
                     $"playerCell={playerX},{playerY} marker={frame.PlayerPixelX},{frame.PlayerPixelY} " +
                     $"cellState={CastleMapFrame.StateAt(_flags,playerX,playerY,inverted)} liveWords={_map.Count(v=>v!=0)} palette={string.Join(",", _palette.Select(v=>v.ToString("x4")))}");

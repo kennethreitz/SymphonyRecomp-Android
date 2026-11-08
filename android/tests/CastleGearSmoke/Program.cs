@@ -74,4 +74,5 @@ Check(origin.X+30*8==projected.X && origin.Y+122*8==projected.Y,"letterbox/viewp
 Check(RecompOne.Runtime.Hle.PsxPixel.FromRgba8(255,0,0,255)==0x801f,"guaranteed GLES RGBA8 readback converts red plus STP");
 Check(RecompOne.Runtime.Hle.PsxPixel.FromRgba8(0,255,0,0)==0x03e0,"RGBA8 readback converts green without alpha");
 for(int v=0;v<32;v++) { byte expanded=(byte)((v*255+15)/31); Check((RecompOne.Runtime.Hle.PsxPixel.FromRgba8(expanded,0,0,0)&31)==v,"all 5-bit channels round trip through RGBA8 "+v); }
+Check(CastleMapFrame.ClutOrigin(0x3d20)==(512,244),"map CLUT origin decoded from the game CLUT id, never hardcoded");
 Console.WriteLine($"Castle Gear: {checks} ROM-free checks passed");
