@@ -24,6 +24,7 @@ public sealed class CastleMapView : View
     int _page, _touchTab = -1;
     float _uiScale = 1, _uiLeft, _uiTop;
     readonly Paint _chrome = new() { AntiAlias = true };
+    readonly Rect _textBounds = new();
     readonly Typeface _titleFont = Typeface.Create("serif", TypefaceStyle.Bold)!;
     readonly Typeface _bodyFont = Typeface.Create("sans-serif", TypefaceStyle.Normal)!;
     static readonly Color Gold = new(178, 143, 84), Ink = new(13, 12, 20), Muted = new(139, 133, 143);
@@ -151,6 +152,31 @@ public sealed class CastleMapView : View
         c.DrawText(text, x, y, _chrome);
     }
 
+    void CenteredText(Canvas c,string text,float centerX,float y,float size,Color color,bool title=false,bool verticalCenter=false)
+    {
+        _chrome.TextSize=size;_chrome.SetTypeface(title?_titleFont:_bodyFont);
+        _chrome.GetTextBounds(text,0,text.Length,_textBounds);
+        float x=GearLayout.InkOrigin(centerX,_textBounds.Left,_textBounds.Right);
+        if(verticalCenter)y=GearLayout.InkOrigin(y,_textBounds.Top,_textBounds.Bottom);
+        Text(c,text,x,y,size,color,title);
+    }
+
+    void DrawEmptyState(Canvas c)
+    {
+        const string title="The castle awaits.";
+        const string line1="Load a save or enter a stage on the upper screen.";
+        const string line2="Map, status and journal follow the live game.";
+        _chrome.TextSize=36;_chrome.SetTypeface(_titleFont);
+        _chrome.GetTextBounds(title,0,title.Length,_textBounds);
+        float firstTop=_textBounds.Top;
+        _chrome.TextSize=22;_chrome.SetTypeface(_bodyFont);
+        _chrome.GetTextBounds(line2,0,line2.Length,_textBounds);
+        float baseline=GearLayout.EmptyFirstBaseline(firstTop,_textBounds.Bottom);
+        CenteredText(c,title,GearLayout.Card.CenterX,baseline,36,Gold,true);
+        CenteredText(c,line1,GearLayout.Card.CenterX,baseline+48,23,Muted);
+        CenteredText(c,line2,GearLayout.Card.CenterX,baseline+86,22,Muted);
+    }
+
     void Panel(Canvas c, float l, float t, float r, float b, Color fill, Color stroke)
     {
         _chrome.SetStyle(Paint.Style.Fill); _chrome.Color = fill;
@@ -192,18 +218,16 @@ public sealed class CastleMapView : View
         Text(canvas, frame == null ? "NO SIGNAL" : "LIVE / READ ONLY", 755, 95, 16, Muted);
         for (int i = 0; i < Tabs.Length; i++)
         {
-            float x = 42 + i * 232;
-            Panel(canvas, x, 122, x + 220, 182, i == _page ? new Color(65, 32, 47) : Ink,
-                i == _page ? Gold : new Color(64, 49, 59));
-            Text(canvas, Tabs[i], x + 54, 160, 24, i == _page ? Gold : Muted, true);
+            var tab=GearLayout.Tab(i,Tabs.Length);
+            Panel(canvas,tab.Left,tab.Top,tab.Right,tab.Bottom,i == _page ? new Color(65,32,47) : Ink,
+                i == _page ? Gold : new Color(64,49,59));
+            CenteredText(canvas,Tabs[i],tab.CenterX,tab.CenterY,24,i == _page ? Gold : Muted,true,true);
         }
-        Panel(canvas, 42, 200, 958, 798, new Color(8, 9, 16), new Color(68, 58, 71));
+        Panel(canvas,GearLayout.Card.Left,GearLayout.Card.Top,GearLayout.Card.Right,GearLayout.Card.Bottom,new Color(8,9,16),new Color(68,58,71));
         if (_page == 3) DrawMods(canvas);
         else if (frame == null)
         {
-            Text(canvas, "The castle awaits.", 250, 409, 36, Gold, true);
-            Text(canvas, "Load a save or enter a stage on the upper screen.", 180, 457, 23, Muted);
-            Text(canvas, "Map, status and journal follow the live game.", 202, 495, 22, Muted);
+            DrawEmptyState(canvas);
         }
         else if (_page == 0) DrawStatus(canvas, frame);
         else if (_page == 1) DrawMap(canvas, frame.Map);
@@ -370,7 +394,7 @@ public sealed class CastleMapView : View
     {
         float x = (rawX - _uiLeft) / _uiScale, y = (rawY - _uiTop) / _uiScale;
         if (y < 122 || y > 182) return -1;
-        for (int i = 0; i < Tabs.Length; i++) if (x >= 42 + i * 232 && x <= 262 + i * 232) return i;
+        for (int i = 0; i < Tabs.Length; i++) if (GearLayout.Tab(i,Tabs.Length).Contains(x,y)) return i;
         return -1;
     }
 
@@ -449,6 +473,7 @@ public sealed class CastleMapView : View
             _markerPaint.Dispose();
             _textPaint.Dispose();
             _chrome.Dispose();
+            _textBounds.Dispose();
             _titleFont.Dispose();
             _bodyFont.Dispose();
         }
