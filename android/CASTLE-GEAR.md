@@ -4,7 +4,7 @@ A read-only, gothic second-screen companion for the AYN Thor. Its card structure
 is inspired by the Kanto Gear companion in the local gen1recomp project, with
 original Android Canvas chrome rather than borrowed game artwork.
 
-- STATUS opens first: HP/MP/hearts, level, experience, gold, equipment and relic count.
+- STATUS opens first: HP/MP/hearts, level, experience, NEXT, level-progress bar, gold, equipment and relic count.
 - MAP: native explored map and player marker. Unexplored blueprint is hidden.
 - JOURNAL: play time, room count, time-attack boss records and music track id.
 - Touch tabs to switch. Opening MAP starts at 4x centered on the current room.
@@ -48,3 +48,25 @@ dotnet run --project android/tests/CastleGearSmoke
 
 Normal castle is device-tested; inverted transformation is synthetic-test-covered
 and still needs a real inverted-castle save for visual confirmation.
+
+## NEXT and character portrait
+
+NEXT uses the running US game's `g_ExpNext` table at 0x800AC780:
+entry `[level+1]` minus total experience, just like MenuDrawStats. The progress
+bar measures experience earned since entry `[level]`, not total lifetime EXP.
+Level 99 shows NEXT 0 / MAX LEVEL and a full bar without reading entry 100.
+Invalid levels/ranges show an unavailable value rather than underflowing.
+
+The STATUS portrait is a runtime-only copy of entity 0's streamed sprite in
+`g_PlayerDraw[entity.unk5A].rect0` (base 0x80097D1C, stride 40). Entity animation
+metadata resolves the palette, including overlay animation banks used by Richter.
+Pixels and CLUT come from authoritative VRAM on the GPU queue. Index zero is
+transparent; facing and current character identity are preserved. The view uses
+nearest-neighbor scaling with a fixed aspect ratio. It updates with gameplay at
+10 Hz; menus and unsupported/non-streamed poses retain the last valid frame for
+the same character. A character change clears the cache, so Alucard is never
+shown as a substitute for Richter. Only Alucard has been device-tested so far.
+No sprite artwork, extracted pixels or copied game tables are committed.
+
+The external footer row is removed; the content panel and map viewport extend
+40 layout units lower. All cards retain the shared drawing/touch transform.

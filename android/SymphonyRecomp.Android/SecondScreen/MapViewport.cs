@@ -10,7 +10,7 @@ public sealed class MapViewport
         Zoom = 4; CenterX = x >= 0 ? x : 128; CenterY = y >= 0 ? y : 128; Clamp();
     }
     public (float X, float Y) Project(float x, float y, float scale)
-        => (500 + (x-CenterX)*scale, 485 + (y-CenterY)*scale);
+        => (500 + (x-CenterX)*scale, 505 + (y-CenterY)*scale);
     public void Reset() { Zoom = 1; CenterX = CenterY = 128; }
     public void ScaleBy(float factor)
     {
