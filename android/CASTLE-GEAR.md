@@ -70,3 +70,10 @@ No sprite artwork, extracted pixels or copied game tables are committed.
 
 The external footer row is removed; the content panel and map viewport extend
 40 layout units lower. All cards retain the shared drawing/touch transform.
+
+
+Tab labels use their actual paint/typeface glyph bounds and shared full-width tab
+geometry, centered on both axes. The three-line empty-state block is centered
+horizontally on the content card and vertically by its first/last glyph bounds.
+ROM-free layout checks cover all four tab centers, shared touch bounds and the
+empty block's horizontal/vertical centering.

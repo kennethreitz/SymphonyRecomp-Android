@@ -179,4 +179,15 @@ SymphonyRecomp.Android.BundledMods.Seed(seeded);
 Check(File.ReadAllText(Path.Combine(deployed,"PlusTracker.cs"))=="user source","bundled source never overwrites user edits");
 Check(File.ReadAllText(Path.Combine(seeded,"mod-settings.json"))=="user settings","bundled source does not enable mods or change settings");
 
+Check(GearLayout.Tab(1,4).CenterX==384 && GearLayout.Tab(3,4).Right==GearLayout.Card.Right,"four-tab layout derives MAP and rightmost tab geometry from the full card");
+for(int tab=0;tab<4;tab++)
+{
+    var bounds=GearLayout.Tab(tab,4);
+    float inkOrigin=GearLayout.InkOrigin(bounds.CenterX,-2,67);
+    Check((inkOrigin-2+inkOrigin+67)/2==bounds.CenterX && bounds.Contains(bounds.CenterX,bounds.CenterY),"tab label ink and touch target share exact center "+tab);
+}
+float firstBaseline=GearLayout.EmptyFirstBaseline(-30,7);
+Check((firstBaseline-30+firstBaseline+86+7)/2==GearLayout.Card.CenterY,"three-line empty block is vertically centered by actual first/last glyph bounds");
+Check(GearLayout.InkOrigin(GearLayout.Card.CenterX,-1,349)+(-1+349)/2f==500,"empty-state lines center independently on the complete card, not a status column");
+
 Console.WriteLine($"Castle Gear: {checks} ROM-free checks passed");
