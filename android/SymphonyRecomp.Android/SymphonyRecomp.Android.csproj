@@ -27,6 +27,13 @@
     <EnableLLVM>false</EnableLLVM>
   </PropertyGroup>
 
+  <!-- Castle map art for the second screen. Explicit LogicalName because the
+       default would be derived from the ../../ path. -->
+  <ItemGroup>
+    <EmbeddedResource Include="../../assets/map/Castle1.png" LogicalName="map.Castle1.png" />
+    <EmbeddedResource Include="../../assets/map/Castle2.png" LogicalName="map.Castle2.png" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="../../RecompOne/RecompOne.Runtime/RecompOne.Runtime.csproj" />
   </ItemGroup>

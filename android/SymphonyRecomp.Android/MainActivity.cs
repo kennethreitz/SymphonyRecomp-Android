@@ -1,5 +1,6 @@
 using Android.App;
 using Android.Content.PM;
+using Android.Hardware.Display;
 using Android.OS;
 using Android.Views;
 using RecompOne.Runtime.Config;
@@ -7,6 +8,7 @@ using RecompOne.Runtime.Host;
 using RecompOne.Runtime.Memory;
 using RecompOne.Runtime.Platform.Android;
 using Recompiled;
+using SymphonyRecomp.Android.SecondScreen;
 
 namespace SymphonyRecomp.Android;
 
@@ -44,6 +46,8 @@ public sealed class MainActivity : Activity, ISurfaceHolderCallback
         // After SetContentView: the DecorView does not exist until the content
         // view is set, and InsetsController comes off the DecorView.
         GoImmersive();
+
+        ShowMapOnSecondScreen();
     }
 
     void GoImmersive()
@@ -87,6 +91,38 @@ public sealed class MainActivity : Activity, ISurfaceHolderCallback
 
     // The EGL context outlives this; only the window surface goes away.
     public void SurfaceDestroyed(ISurfaceHolder holder) => HostWindow.DetachSurface();
+
+    // --- Second screen -----------------------------------------------------
+
+    MapPresentation? _mapPresentation;
+
+    // The Thor's lower panel reports as a separate Display with FLAG_PRESENTATION.
+    // Anything else (single-screen device, no secondary display) is a no-op.
+    void ShowMapOnSecondScreen()
+    {
+        try
+        {
+            var manager = (DisplayManager?)GetSystemService(DisplayService);
+            var displays = manager?.GetDisplays(DisplayManager.DisplayCategoryPresentation);
+            if (displays == null || displays.Length == 0)
+            {
+                Console.WriteLine("[Map] no presentation display, second screen skipped");
+                return;
+            }
+
+            var target = displays[0];
+            Console.WriteLine($"[Map] using display {target.DisplayId} '{target.Name}'");
+
+            _mapPresentation = new MapPresentation(this, target);
+            _mapPresentation.Show();
+        }
+        catch (Exception e)
+        {
+            // A failure here must never take the game down with it.
+            Console.Error.WriteLine($"[Map] second screen unavailable: {e.Message}");
+            _mapPresentation = null;
+        }
+    }
 
     // --- Game thread -------------------------------------------------------
 
@@ -210,6 +246,8 @@ public sealed class MainActivity : Activity, ISurfaceHolderCallback
 
     protected override void OnDestroy()
     {
+        try { _mapPresentation?.Dismiss(); } catch { /* display already gone */ }
+        _mapPresentation = null;
         HostWindow.RequestClose();
         base.OnDestroy();
     }
